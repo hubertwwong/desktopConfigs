@@ -3,11 +3,11 @@
 # desktopConfigs - One-Liner Bootstrap Installer
 # ==============================================================================
 # Usage:
-#   curl -fsSL https://raw.githubusercontent.com/hubertwwong/desktopConfigs/master/bootstrap.sh | bash -s -- mint-server
+#   curl -fsSL https://raw.githubusercontent.com/hubertwwong/linuxDesktopConfig/master/bootstrap.sh | bash -s -- mint-server
 # ==============================================================================
 set -e
 
-REPO_URL="https://github.com/hubertwwong/desktopConfigs.git"
+REPO_URL="${REPO_URL:-https://github.com/hubertwwong/linuxDesktopConfig.git}"
 INSTALL_DIR="${INSTALL_DIR:-$HOME/projects/desktopConfigs}"
 
 echo "======================================================================"

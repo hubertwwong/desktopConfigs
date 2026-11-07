@@ -42,7 +42,7 @@ cd ~/projects/desktopConfigs
 Or run via the one-liner bootstrap installer on a new machine:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/hubertwwong/desktopConfigs/master/bootstrap.sh | bash -s -- mint-server
+curl -fsSL https://raw.githubusercontent.com/hubertwwong/linuxDesktopConfig/master/bootstrap.sh | bash -s -- mint-server
 ```
 
 ---

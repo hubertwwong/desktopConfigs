@@ -10,13 +10,13 @@ On a fresh VM or machine, run this single command to clone the repo into `~/proj
 
 ```bash
 # Provision Linux Mint 24/7 Server (No sleep, display sleep, SSH, Docker, Tailscale, CRD):
-curl -fsSL https://raw.githubusercontent.com/hubertwwong/desktopConfigs/master/bootstrap.sh | bash -s -- mint-server
+curl -fsSL https://raw.githubusercontent.com/hubertwwong/linuxDesktopConfig/master/bootstrap.sh | bash -s -- mint-server
 
 # Provision Linux Mint Desktop (XFCE Edition):
-curl -fsSL https://raw.githubusercontent.com/hubertwwong/desktopConfigs/master/bootstrap.sh | bash -s -- mint
+curl -fsSL https://raw.githubusercontent.com/hubertwwong/linuxDesktopConfig/master/bootstrap.sh | bash -s -- mint
 
 # Or auto-detect any supported distribution (Debian / Ubuntu / Mint):
-curl -fsSL https://raw.githubusercontent.com/hubertwwong/desktopConfigs/master/bootstrap.sh | bash
+curl -fsSL https://raw.githubusercontent.com/hubertwwong/linuxDesktopConfig/master/bootstrap.sh | bash
 ```
 
 ---
