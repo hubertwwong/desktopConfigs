@@ -3,8 +3,9 @@
 # Linux Mint Configuration & Upstream Mapping
 # ==============================================================================
 
-# Default Desktop Environment for Mint XFCE edition
-desktop_environment: "xfce"
+# Default Desktop Environment for Linux Mint (Cinnamon Edition)
+# Remote desktop (Chrome Remote Desktop / XRDP) uses lightweight XFCE separately
+desktop_environment: "cinnamon"
 
 # Linux Mint upstream release mapping (Mint version -> Ubuntu/Debian LTS codename)
 mint_upstream_releases:
