@@ -1,0 +1,167 @@
+---
+# ==============================================================================
+# Low Maintenance & Auto Maintenance Role
+# Features:
+#   - Linux Mint native daily automatic package/security upgrades (mintupdate-automation)
+#   - Linux Mint native weekly automatic removal of obsolete kernels
+#   - Desktop Flatpak & Cinnamon Spices background auto-updates
+#   - Conditional 4 AM reboot only when /var/run/reboot-required exists
+#   - Kernel panic auto-reboot (recovers headless machines from crashes)
+#   - Systemd journal size cap (prevents SSD disk exhaustion)
+#   - Weekly automated Flatpak unused runtimes and Docker system pruning
+# ==============================================================================
+
+# ------------------------------------------------------------------------------
+# 1. Linux Mint Native Update Automation (mintupdate-automation)
+# ------------------------------------------------------------------------------
+- name: Check if mintupdate-automation is available
+  ansible.builtin.stat:
+    path: /usr/bin/mintupdate-automation
+  register: mintupdate_automation_bin
+
+- name: Enable Linux Mint automatic daily package updates
+  ansible.builtin.command: /usr/bin/mintupdate-automation upgrade enable
+  become: yes
+  when:
+    - mintupdate_automation_bin.stat.exists
+    - auto_update_enabled | default(true)
+  args:
+    creates: /var/lib/linuxmint/mintupdate-automatic-upgrades-enabled
+
+- name: Enable Linux Mint automatic weekly autoremoval of obsolete kernels
+  ansible.builtin.command: /usr/bin/mintupdate-automation autoremove enable
+  become: yes
+  when:
+    - mintupdate_automation_bin.stat.exists
+    - auto_autoremove_enabled | default(true)
+  args:
+    creates: /var/lib/linuxmint/mintupdate-automatic-removals-enabled
+
+# ------------------------------------------------------------------------------
+# 2. Desktop Environment Component Updates (Flatpaks & Cinnamon Spices)
+# ------------------------------------------------------------------------------
+- name: Check if gsettings is available
+  ansible.builtin.command: which gsettings
+  register: gsettings_check
+  failed_when: false
+  changed_when: false
+
+- name: Configure Linux Mint Update Manager automatic flatpaks and spices
+  ansible.builtin.command: "gsettings set com.linuxmint.updates {{ item.key }} {{ item.value }}"
+  loop:
+    - { key: 'auto-update-flatpaks', value: "{{ 'true' if (auto_update_flatpaks | default(true)) else 'false' }}" }
+    - { key: 'auto-update-cinnamon-spices', value: "{{ 'true' if (auto_update_cinnamon_spices | default(true)) else 'false' }}" }
+  failed_when: false
+  changed_when: false
+  when:
+    - gsettings_check.rc == 0
+    - mintupdate_automation_bin.stat.exists
+
+# ------------------------------------------------------------------------------
+# 3. Conditional Automated Reboot (4 AM when reboot is required)
+# ------------------------------------------------------------------------------
+- name: Deploy conditional 4 AM reboot cron job
+  ansible.builtin.copy:
+    dest: /etc/cron.d/auto-reboot-required
+    owner: root
+    group: root
+    mode: '0644'
+    content: |
+      # Managed by Ansible (desktopConfigs)
+      # Checks at 04:00 daily if system update requires restart and reboots if pending
+      0 4 * * * root [ -f /var/run/reboot-required ] && /sbin/shutdown -r now
+  become: yes
+  when: auto_reboot_on_required | default(false)
+
+- name: Remove conditional 4 AM reboot cron job when disabled
+  ansible.builtin.file:
+    path: /etc/cron.d/auto-reboot-required
+    state: absent
+  become: yes
+  when: not (auto_reboot_on_required | default(false))
+
+# ------------------------------------------------------------------------------
+# 4. Crash Recovery (Kernel Panic Auto-Reboot)
+# ------------------------------------------------------------------------------
+- name: Configure kernel panic auto-reboot sysctl
+  ansible.posix.sysctl:
+    name: kernel.panic
+    value: "{{ kernel_panic_reboot_timeout | string }}"
+    sysctl_file: /etc/sysctl.d/99-panic-reboot.conf
+    state: present
+    reload: yes
+  become: yes
+  when: (kernel_panic_reboot_timeout | default(10) | int) > 0
+
+# ------------------------------------------------------------------------------
+# 5. Disk Protections (Systemd Journal Size Cap)
+# ------------------------------------------------------------------------------
+- name: Ensure systemd-journald drop-in directory exists
+  ansible.builtin.file:
+    path: /etc/systemd/journald.conf.d
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+  become: yes
+
+- name: Configure systemd-journald max disk usage
+  ansible.builtin.copy:
+    dest: /etc/systemd/journald.conf.d/size.conf
+    owner: root
+    group: root
+    mode: '0644'
+    content: |
+      # Managed by Ansible (desktopConfigs)
+      [Journal]
+      SystemMaxUse={{ journal_max_use | default('500M') }}
+      SystemMaxFileSize={{ journal_max_file_size | default('50M') }}
+  become: yes
+  notify: Restart systemd-journald
+
+# ------------------------------------------------------------------------------
+# 6. Periodic Maintenance (Flatpak & Docker Cleanups)
+# ------------------------------------------------------------------------------
+- name: Deploy weekly Flatpak unused runtime cleanup script
+  ansible.builtin.copy:
+    dest: /etc/cron.weekly/flatpak-clean
+    owner: root
+    group: root
+    mode: '0755'
+    content: |
+      #!/bin/sh
+      # Managed by Ansible (desktopConfigs)
+      if command -v flatpak >/dev/null 2>&1; then
+          flatpak uninstall --unused -y
+      fi
+  become: yes
+  when: flatpak_unused_cleanup | default(true)
+
+- name: Remove weekly Flatpak unused cleanup script if disabled
+  ansible.builtin.file:
+    path: /etc/cron.weekly/flatpak-clean
+    state: absent
+  become: yes
+  when: not (flatpak_unused_cleanup | default(true))
+
+- name: Deploy weekly Docker prune script
+  ansible.builtin.copy:
+    dest: /etc/cron.weekly/docker-prune
+    owner: root
+    group: root
+    mode: '0755'
+    content: |
+      #!/bin/sh
+      # Managed by Ansible (desktopConfigs)
+      if command -v docker >/dev/null 2>&1; then
+          docker system prune -af --filter "until=168h"
+      fi
+  become: yes
+  when: docker_prune_cleanup | default(true)
+
+- name: Remove weekly Docker prune script if disabled
+  ansible.builtin.file:
+    path: /etc/cron.weekly/docker-prune
+    state: absent
+  become: yes
+  when: not (docker_prune_cleanup | default(true))

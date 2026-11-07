@@ -1,0 +1,29 @@
+---
+# ==============================================================================
+# Auto Maintenance Role Defaults
+# ==============================================================================
+
+# Enable automatic package and security upgrades (via Mint Update Manager on Linux Mint)
+auto_update_enabled: true
+
+# Enable automatic weekly removal of obsolete kernels and dependencies
+auto_autoremove_enabled: true
+
+# Automatically update Flatpaks and Cinnamon Spices via desktop gsettings
+auto_update_flatpaks: true
+auto_update_cinnamon_spices: true
+
+# Automatically reboot at 04:00 daily if an update created /var/run/reboot-required
+# Recommended true for 24/7 headless servers; can be disabled for desktop workstations
+auto_reboot_on_required: true
+
+# Seconds before rebooting automatically following a kernel panic (0 to disable)
+kernel_panic_reboot_timeout: 10
+
+# Systemd journal disk usage limits (prevents logs from bloating the SSD)
+journal_max_use: "500M"
+journal_max_file_size: "50M"
+
+# Periodic maintenance tasks
+flatpak_unused_cleanup: true
+docker_prune_cleanup: true

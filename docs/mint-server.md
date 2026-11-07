@@ -24,6 +24,13 @@ The **Linux Mint Server** variant provisions Linux Mint (Cinnamon, XFCE, or MATE
 4. **Server Operations & Diagnostics**:
    - Includes `tmux`, `htop`, `iotop`, `ufw`, `curl`, `net-tools`, and `git`.
 
+5. **Zero-Touch Maintenance & Self-Healing**:
+   - **Automatic OS Updates & Autoremoval**: Enables daily unattended Linux Mint package updates and weekly removal of obsolete kernels via native `mintupdate-automation`.
+   - **Desktop Component Updates**: Automatically updates Flatpaks and Cinnamon Spices in background user sessions.
+   - **Conditional 4 AM Reboot**: Deploys `/etc/cron.d/auto-reboot-required` to safely reboot at 04:00 only if a kernel or core library update created `/var/run/reboot-required`.
+   - **Kernel Panic Auto-Recovery**: Sets `kernel.panic = 10` in `/etc/sysctl.d/99-panic-reboot.conf` so headless lockups automatically reboot after 10 seconds.
+   - **Disk Space Protections**: Caps `systemd-journald` disk usage at 500MB and schedules weekly automated cleanups for unused Flatpak runtimes and old Docker images/build cache.
+
 ---
 
 ## Quickstart
@@ -55,3 +62,8 @@ In `prod/initialSetup/site-mint-server.yaml` (or overridden via `--extra-vars`):
 | :--- | :--- | :--- |
 | `disable_server_sleep` | `true` | Masks systemd sleep/suspend/hibernate targets and disables OS idle sleep. |
 | `display_sleep_timeout` | `600` | Inactivity timeout in seconds before the physical monitor sleeps (10 mins). Set to `0` for never. |
+| `auto_reboot_on_required` | `true` | Checks daily at 04:00 AM and reboots only if `/var/run/reboot-required` exists. |
+| `auto_update_enabled` | `true` | Enables daily unattended Linux Mint package updates. |
+| `auto_autoremove_enabled` | `true` | Enables weekly removal of obsolete kernels while safely retaining backups. |
+| `kernel_panic_reboot_timeout` | `10` | Auto-reboot seconds following a kernel panic (0 to disable). |
+| `journal_max_use` | `"500M"` | Maximum disk storage for `systemd-journald`. |

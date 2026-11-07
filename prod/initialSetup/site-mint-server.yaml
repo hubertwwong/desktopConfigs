@@ -4,6 +4,7 @@
 # Tailored specifically for Linux Mint running as an always-on server
 # Features:
 #   - 24/7 Server Power Management: systemd sleep masked, DPMS display sleep enabled
+#   - Zero-Touch Maintenance: unattended OS/security updates, conditional 4 AM reboot, journal caps
 #   - Remote Access & Management: SSH server, Chrome Remote Desktop, Tailscale
 #   - Developer & Container Stack: Docker CE, Git, Mise, Python, VS Code, Ghostty, Antigravity
 #   - Essential Server Tools: tmux, htop, curl, ufw, net-tools, iotop
@@ -14,6 +15,8 @@
     # Disable OS sleep completely, let physical display sleep after 10 minutes (600s)
     disable_server_sleep: true
     display_sleep_timeout: 600
+    # Zero-touch maintenance: reboot at 04:00 if kernel/libc updates require restart
+    auto_reboot_on_required: true
   pre_tasks:
     - name: Load Linux Mint distribution variables
       ansible.builtin.include_vars: "{{ item }}"
@@ -48,6 +51,7 @@
   roles:
     - initial_packages
     - power_management
+    - auto_maintenance
     - timezone
     - dot
     - chrome
