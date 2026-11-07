@@ -19,6 +19,7 @@
 
   roles:
     - initial_packages
+    - power_management
     - timezone
     - dot
     - chrome

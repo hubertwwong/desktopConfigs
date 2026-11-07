@@ -19,6 +19,7 @@
 
   roles:
     - initial_packages
+    - power_management
     - role: gnome_accounts
       when: desktop_environment | default('gnome') == 'gnome'
     - role: gnome_settings
@@ -28,6 +29,7 @@
     - timezone
     - dot
     - chrome
+    - chrome_remote_desktop
     - python
     - vscode_apt
     - vscode_file_handles

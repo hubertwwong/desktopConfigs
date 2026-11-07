@@ -1,0 +1,23 @@
+#!/bin/sh
+# Keep systemd --user clean so a concurrent local Cinnamon (:0) session's
+# apps, audio, GPU, and Chrome are not redirected to the virtual CRD session.
+systemctl --user unset-environment \
+  CHROME_CONFIG_HOME \
+  CHROME_REMOTE_DESKTOP_AUDIO_PIPE \
+  CHROME_REMOTE_DESKTOP_SESSION \
+  CHROME_USER_DATA_DIR \
+  GDK_BACKEND \
+  LD_LIBRARY_PATH \
+  PIPEWIRE_REMOTE \
+  PULSE_CONFIG_PATH \
+  PULSE_RUNTIME_PATH \
+  PULSE_SINK \
+  PULSE_STATE_PATH >/dev/null 2>&1 || true
+
+if [ -S /tmp/.X11-unix/X0 ] && pgrep -u "$USER" -x cinnamon-session-binary >/dev/null 2>&1; then
+  systemctl --user set-environment DISPLAY=:0 XDG_CURRENT_DESKTOP=X-Cinnamon >/dev/null 2>&1 || true
+fi
+
+unset DBUS_SESSION_BUS_ADDRESS
+unset SESSION_MANAGER
+exec /usr/bin/dbus-run-session -- /usr/bin/startxfce4

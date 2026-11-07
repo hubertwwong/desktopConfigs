@@ -1,0 +1,140 @@
+---
+# ==============================================================================
+# Server Power & Sleep Management Role (24/7 Server Operations)
+# Permanently disables sleep, suspend, and hibernation at systemd & desktop level
+# ==============================================================================
+
+# ------------------------------------------------------------------------------
+# 1. Systemd Kernel & Service Level Lock
+# ------------------------------------------------------------------------------
+- name: Mask systemd sleep and hibernation targets
+  ansible.builtin.systemd:
+    name: "{{ item }}"
+    masked: yes
+  loop:
+    - sleep.target
+    - suspend.target
+    - hibernate.target
+    - hybrid-sleep.target
+  become: yes
+  when: disable_server_sleep | default(true)
+
+- name: Ensure systemd drop-in directories exist
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+  loop:
+    - /etc/systemd/logind.conf.d
+    - /etc/systemd/sleep.conf.d
+  become: yes
+  when: disable_server_sleep | default(true)
+
+- name: Configure systemd-logind drop-in (ignore lid switch and sleep buttons)
+  ansible.builtin.copy:
+    dest: /etc/systemd/logind.conf.d/nosleep.conf
+    owner: root
+    group: root
+    mode: '0644'
+    content: |
+      [Login]
+      HandleLidSwitch=ignore
+      HandleLidSwitchExternalPower=ignore
+      HandleLidSwitchDocked=ignore
+      HandleSuspendKey=ignore
+      HandleHibernateKey=ignore
+      IdleAction=ignore
+  become: yes
+  notify: Restart systemd-logind
+  when: disable_server_sleep | default(true)
+
+- name: Configure systemd-sleep drop-in (disable all sleep/hibernate states)
+  ansible.builtin.copy:
+    dest: /etc/systemd/sleep.conf.d/nosleep.conf
+    owner: root
+    group: root
+    mode: '0644'
+    content: |
+      [Sleep]
+      AllowSuspend=no
+      AllowHibernation=no
+      AllowSuspendThenHibernate=no
+      AllowHybridSleep=no
+  become: yes
+  when: disable_server_sleep | default(true)
+
+# ------------------------------------------------------------------------------
+# 2. Desktop Environment Power Settings (Cinnamon & GNOME via gsettings)
+# ------------------------------------------------------------------------------
+- name: Check if gsettings is available
+  ansible.builtin.command: which gsettings
+  register: gsettings_check
+  failed_when: false
+  changed_when: false
+
+- name: Configure Cinnamon power settings (disable sleep and lid suspend)
+  ansible.builtin.command: "gsettings set org.cinnamon.settings-daemon.plugins.power {{ item.key }} {{ item.value }}"
+  loop:
+    - { key: 'sleep-inactive-ac-timeout', value: '0' }
+    - { key: 'sleep-inactive-battery-timeout', value: '0' }
+    - { key: 'sleep-inactive-ac-type', value: "'nothing'" }
+    - { key: 'sleep-inactive-battery-type', value: "'nothing'" }
+    - { key: 'lid-close-ac-action', value: "'nothing'" }
+    - { key: 'lid-close-battery-action', value: "'nothing'" }
+    - { key: 'idle-dim-ac', value: 'false' }
+    - { key: 'idle-dim-battery', value: 'false' }
+    - { key: 'sleep-display-ac', value: "{{ display_sleep_timeout | default(900) }}" }
+    - { key: 'sleep-display-battery', value: "{{ display_sleep_timeout | default(900) }}" }
+  failed_when: false
+  changed_when: true
+  when: gsettings_check.rc == 0
+
+- name: Configure Cinnamon session idle delay
+  ansible.builtin.command: "gsettings set org.cinnamon.desktop.session idle-delay 0"
+  failed_when: false
+  changed_when: true
+  when: gsettings_check.rc == 0
+
+- name: Configure GNOME power settings (disable sleep and lid suspend)
+  ansible.builtin.command: "gsettings set org.gnome.settings-daemon.plugins.power {{ item.key }} {{ item.value }}"
+  loop:
+    - { key: 'sleep-inactive-ac-timeout', value: '0' }
+    - { key: 'sleep-inactive-battery-timeout', value: '0' }
+    - { key: 'sleep-inactive-ac-type', value: "'nothing'" }
+    - { key: 'sleep-inactive-battery-type', value: "'nothing'" }
+    - { key: 'lid-close-ac-action', value: "'nothing'" }
+    - { key: 'lid-close-battery-action', value: "'nothing'" }
+    - { key: 'idle-dim', value: 'false' }
+  failed_when: false
+  changed_when: true
+  when: gsettings_check.rc == 0
+
+- name: Configure GNOME session idle delay
+  ansible.builtin.command: "gsettings set org.gnome.desktop.session idle-delay 0"
+  failed_when: false
+  changed_when: true
+  when: gsettings_check.rc == 0
+
+# ------------------------------------------------------------------------------
+# 3. XFCE Power Manager Settings (via xfconf-query)
+# ------------------------------------------------------------------------------
+- name: Check if xfconf-query tool is available
+  ansible.builtin.command: which xfconf-query
+  register: xfconf_check
+  failed_when: false
+  changed_when: false
+
+- name: Configure XFCE power manager - Disable sleep on AC/battery
+  ansible.builtin.command: >
+    xfconf-query -c xfce4-power-manager -p {{ item.prop }} -n -t {{ item.type }} -s {{ item.val }}
+  loop:
+    - { prop: '/xfce4-power-manager/inactivity-on-ac', type: 'uint', val: '0' }
+    - { prop: '/xfce4-power-manager/inactivity-on-battery', type: 'uint', val: '0' }
+    - { prop: '/xfce4-power-manager/lid-action-on-ac', type: 'uint', val: '0' }
+    - { prop: '/xfce4-power-manager/lid-action-on-battery', type: 'uint', val: '0' }
+    - { prop: '/xfce4-power-manager/power-button-action', type: 'uint', val: '0' }
+  failed_when: false
+  changed_when: true
+  when: xfconf_check.rc == 0

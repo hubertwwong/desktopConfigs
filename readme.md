@@ -60,11 +60,13 @@ The system automatically detects your OS distribution and applies matching confi
   - **Docker CE & Compose**: Dynamic distro repository integration with armored keyring verification.
   - **Ghostty Terminal**: Native `.deb` package auto-matched to upstream distro version with `Gruvbox Dark` styling.
   - **Google Chrome**: Official Google APT package repository.
-- **Networking & Services**:
+- **Networking & Remote Services**:
   - **Tailscale**: Official Tailscale repository, package installation, and systemd service setup.
-- **System & Shell Customizations**:
+  - **Chrome Remote Desktop**: Headless remote desktop host via XFCE with dual-session local/remote isolation (see [docs/chrome-remote-desktop.md](docs/chrome-remote-desktop.md)).
+- **System & Server Operations**:
+  - **24/7 Server Power Management**: Permanently masks systemd sleep/suspend/hibernate targets, configures `systemd-logind` to ignore laptop lid closing and power/suspend buttons, and prevents OS sleep while preserving display timeout for energy savings.
   - **Dotfiles**: Prompt enhancements and CLI shortcuts (`k`, `mk`, docker aliases).
-  - **Desktop Customizations**: Power management, screensaver timeout, and lock-screen behavior (`xfconf-query` for XFCE, `gsettings` for GNOME).
+  - **Desktop Customizations**: Screensaver timeout and lock-screen behavior (`xfconf-query` for XFCE, `gsettings` for GNOME/Cinnamon).
   - **Antigravity Customizations & Skills**: Configures global AGY rules, MCP config, and skills directory (`~/.gemini/config/skills/`) for on-demand progressive disclosure.
 
 ---

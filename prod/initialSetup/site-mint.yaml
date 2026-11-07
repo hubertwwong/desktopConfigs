@@ -21,10 +21,12 @@
 
   roles:
     - initial_packages
+    - power_management
     - xfce_settings
     - timezone
     - dot
     - chrome
+    - chrome_remote_desktop
     - python
     - vscode_apt
     - vscode_file_handles

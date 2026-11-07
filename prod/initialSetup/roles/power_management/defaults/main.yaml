@@ -1,0 +1,6 @@
+---
+# Timeout in seconds before the physical display sleeps (default: 900s = 15min; set to 0 for never)
+display_sleep_timeout: 900
+
+# Whether to mask systemd sleep/suspend/hibernate targets completely (recommended for 24/7 servers)
+disable_server_sleep: true

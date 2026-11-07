@@ -1,0 +1,54 @@
+---
+# ==============================================================================
+# Chrome Remote Desktop Role (Headless Virtual X11 via XFCE)
+# ==============================================================================
+
+- name: Install desktop dependencies for Chrome Remote Desktop
+  ansible.builtin.package:
+    name:
+      - xfce4
+      - xfce4-session
+      - dbus-x11
+      - xvfb
+      - xbase-clients
+      - python3-psutil
+    state: present
+    update_cache: true
+  become: yes
+
+- name: Download Chrome Remote Desktop package
+  ansible.builtin.get_url:
+    url: https://dl.google.com/linux/direct/chrome-remote-desktop_current_amd64.deb
+    dest: /tmp/chrome-remote-desktop.deb
+    mode: '0644'
+
+- name: Install Chrome Remote Desktop package
+  ansible.builtin.apt:
+    deb: /tmp/chrome-remote-desktop.deb
+  become: yes
+
+- name: Deploy ~/.chrome-remote-desktop-session script
+  ansible.builtin.copy:
+    src: chrome-remote-desktop-session
+    dest: "{{ ansible_env.HOME }}/.chrome-remote-desktop-session"
+    owner: "{{ ansible_user_id }}"
+    group: "{{ ansible_user_id }}"
+    mode: '0755'
+
+- name: Enable chrome-remote-desktop systemd service for user
+  ansible.builtin.systemd:
+    name: "chrome-remote-desktop@{{ ansible_user_id }}.service"
+    enabled: yes
+  become: yes
+
+- name: Display post-installation authorization instructions
+  ansible.builtin.debug:
+    msg:
+      - "========================================================================"
+      - " Chrome Remote Desktop installed successfully!"
+      - " To link this machine to your Google Account:"
+      - " 1. Open https://remotedesktop.google.com/headless in your browser"
+      - " 2. Click 'Set up another computer' -> 'Begin' -> 'Next' -> 'Authorize'"
+      - " 3. Copy and run the generated Debian Linux command in your shell."
+      - " Documentation: docs/chrome-remote-desktop.md"
+      - "========================================================================"
