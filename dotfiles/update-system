@@ -48,14 +48,21 @@ fi
 
 # 4. Update Antigravity IDE (if installed)
 if command -v update-antigravity-ide &>/dev/null; then
-    echo -e "${BOLD}${YELLOW}[4/5] Checking Antigravity IDE Updates...${RESET}"
+    echo -e "${BOLD}${YELLOW}[4/6] Checking Antigravity IDE Updates...${RESET}"
     update-antigravity-ide -y || true
     echo -e "${GREEN}✓ Antigravity IDE check complete.${RESET}\n"
 fi
 
-# 5. Atuin Update (if installed)
+# 5. Sync Antigravity Skills & Configuration
+if command -v sync-agy &>/dev/null; then
+    echo -e "${BOLD}${YELLOW}[5/6] Syncing Antigravity Skills & Rules...${RESET}"
+    sync-agy pull || true
+    echo -e "${GREEN}✓ Antigravity sync complete.${RESET}\n"
+fi
+
+# 6. Atuin Update (if installed)
 if command -v atuin &>/dev/null; then
-    echo -e "${BOLD}${YELLOW}[5/5] Checking Atuin Updates...${RESET}"
+    echo -e "${BOLD}${YELLOW}[6/6] Checking Atuin Updates...${RESET}"
     atuin update 2>/dev/null || true
     echo -e "${GREEN}✓ Atuin check complete.${RESET}\n"
 fi

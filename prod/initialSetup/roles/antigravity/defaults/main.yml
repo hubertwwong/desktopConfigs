@@ -1,0 +1,11 @@
+---
+# ==============================================================================
+# Antigravity Role Defaults
+# ==============================================================================
+
+# Whether to symlink dotfiles/gemini directly into ~/.gemini/config
+# This ensures zero-drift synchronization with Git across machines
+antigravity_symlink_config: true
+
+# Enable daily background timer to pull updated skills and rules
+antigravity_auto_sync_timer: true

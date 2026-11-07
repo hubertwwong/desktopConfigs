@@ -61,6 +61,7 @@ alias aaInstallVMGuest="sudo bash /media/$USER/V*/VBoxLinuxAdditions.run --nox11
 alias aaUpgradeSys="update-system"
 alias aaUpdateSys="update-system"
 alias update-system="update-system"
+alias aaSyncAgy="sync-agy"
 alias aaUpgradeAll="ansible-playbook -v --ask-become-pass $ZZ_SCRIPTS_DIR/prod/initialSetup/site-all.yaml"
 
 # Shell Reloading

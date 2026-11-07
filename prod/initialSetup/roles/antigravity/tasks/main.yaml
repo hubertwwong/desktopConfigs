@@ -1,5 +1,19 @@
 ---
-- name: Antigravity - Ensure global configuration directories exist
+# ==============================================================================
+# Antigravity (AGY) Global Configuration & Synchronization Role
+# Features:
+#   - Deploys machine-wide global configuration in ~/.gemini/config/
+#   - Symlinks skills, rules (AGENTS.md), and MCP configs directly to Git repo
+#     (ensuring any changes on any machine are automatically version-controlled)
+#   - Deploys the `sync-agy` cross-machine synchronization tool to ~/.local/bin/
+#   - Deploys the dynamic `update-antigravity-ide` updater
+#   - Configures daily background sync via systemd user timer
+# ==============================================================================
+
+# ------------------------------------------------------------------------------
+# 1. Directory Structure & Legacy Cleanup
+# ------------------------------------------------------------------------------
+- name: Antigravity - Ensure directories exist
   ansible.builtin.file:
     path: "{{ item }}"
     state: directory
@@ -7,8 +21,8 @@
   loop:
     - "{{ ansible_env.HOME }}/.gemini"
     - "{{ ansible_env.HOME }}/.gemini/config"
-    - "{{ ansible_env.HOME }}/.gemini/config/skills"
     - "{{ ansible_env.HOME }}/.gemini/config/plugins"
+    - "{{ ansible_env.HOME }}/.local/bin"
 
 - name: Antigravity - Remove legacy town CLI, subagents, and renamed skills if present
   ansible.builtin.file:
@@ -23,26 +37,101 @@
     - "{{ ansible_env.HOME }}/.gemini/config/skills/plan-review"
     - "{{ ansible_env.HOME }}/.gemini/config/skills/skill-review"
 
-- name: Antigravity - Deploy global agent config.json
-  ansible.builtin.copy:
-    src: "{{ playbook_dir }}/../../dotfiles/gemini/config.json"
+# ------------------------------------------------------------------------------
+# 2. Global Configuration Symlinks (Git-Backed for Cross-Machine Sync)
+# ------------------------------------------------------------------------------
+- name: Antigravity - Check if ~/.gemini/config/skills is a physical directory
+  ansible.builtin.stat:
+    path: "{{ ansible_env.HOME }}/.gemini/config/skills"
+  register: skills_dir_stat
+  when: antigravity_symlink_config | default(true)
+
+- name: Antigravity - Replace physical skills directory with symlink to repository
+  ansible.builtin.file:
+    path: "{{ ansible_env.HOME }}/.gemini/config/skills"
+    state: absent
+  when:
+    - antigravity_symlink_config | default(true)
+    - skills_dir_stat.stat.exists
+    - not skills_dir_stat.stat.islnk
+
+- name: Antigravity - Symlink skills directory to dotfiles/gemini/skills
+  ansible.builtin.file:
+    src: "{{ playbook_dir }}/../../dotfiles/gemini/skills"
+    dest: "{{ ansible_env.HOME }}/.gemini/config/skills"
+    state: link
+    force: yes
+  when: antigravity_symlink_config | default(true)
+
+- name: Antigravity - Symlink AGENTS.md rules and mcp_config.json
+  ansible.builtin.file:
+    src: "{{ playbook_dir }}/../../dotfiles/gemini/{{ item }}"
+    dest: "{{ ansible_env.HOME }}/.gemini/config/{{ item }}"
+    state: link
+    force: yes
+  loop:
+    - AGENTS.md
+    - mcp_config.json
+  when: antigravity_symlink_config | default(true)
+
+- name: Antigravity - Deploy machine-tailored config.json
+  ansible.builtin.template:
+    src: config.json.j2
     dest: "{{ ansible_env.HOME }}/.gemini/config/config.json"
     mode: '0600'
 
-- name: Antigravity - Deploy global agent mcp_config.json
+# ------------------------------------------------------------------------------
+# 3. Synchronization & Management Utilities
+# ------------------------------------------------------------------------------
+- name: Antigravity - Deploy sync-agy synchronization CLI tool
   ansible.builtin.copy:
-    src: "{{ playbook_dir }}/../../dotfiles/gemini/mcp_config.json"
-    dest: "{{ ansible_env.HOME }}/.gemini/config/mcp_config.json"
-    mode: '0644'
-
-- name: Antigravity - Deploy global AGENTS.md rules
-  ansible.builtin.copy:
-    src: "{{ playbook_dir }}/../../dotfiles/gemini/AGENTS.md"
-    dest: "{{ ansible_env.HOME }}/.gemini/config/AGENTS.md"
-    mode: '0644'
-
-- name: Antigravity - Deploy modular skills
-  ansible.builtin.copy:
-    src: "{{ playbook_dir }}/../../dotfiles/gemini/skills/"
-    dest: "{{ ansible_env.HOME }}/.gemini/config/skills/"
+    src: "{{ playbook_dir }}/../../scripts/sync-agy.sh"
+    dest: "{{ ansible_env.HOME }}/.local/bin/sync-agy"
     mode: '0755'
+
+- name: Antigravity - Deploy update-antigravity-ide updater
+  ansible.builtin.copy:
+    src: "{{ playbook_dir }}/../../dotfiles/update-antigravity-ide"
+    dest: "{{ ansible_env.HOME }}/.local/bin/update-antigravity-ide"
+    mode: '0755'
+
+# ------------------------------------------------------------------------------
+# 4. Background Auto-Sync Systemd User Timer
+# ------------------------------------------------------------------------------
+- name: Antigravity - Ensure systemd user service directory exists
+  ansible.builtin.file:
+    path: "{{ ansible_env.HOME }}/.config/systemd/user"
+    state: directory
+    mode: '0755'
+  when: antigravity_auto_sync_timer | default(true)
+
+- name: Antigravity - Deploy agy-sync systemd user service
+  ansible.builtin.copy:
+    dest: "{{ ansible_env.HOME }}/.config/systemd/user/agy-sync.service"
+    mode: '0644'
+    content: |
+      [Unit]
+      Description=Sync Antigravity skills and rules from git repository
+      After=network-online.target
+
+      [Service]
+      Type=oneshot
+      ExecStart=%h/.local/bin/sync-agy pull
+  when: antigravity_auto_sync_timer | default(true)
+
+- name: Antigravity - Deploy agy-sync systemd user timer
+  ansible.builtin.copy:
+    dest: "{{ ansible_env.HOME }}/.config/systemd/user/agy-sync.timer"
+    mode: '0644'
+    content: |
+      [Unit]
+      Description=Daily automatic sync of Antigravity skills and rules
+
+      [Timer]
+      OnCalendar=daily
+      Persistent=true
+      RandomizedDelaySec=1800
+
+      [Install]
+      WantedBy=timers.target
+  when: antigravity_auto_sync_timer | default(true)
