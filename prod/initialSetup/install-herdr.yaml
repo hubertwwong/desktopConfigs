@@ -1,0 +1,9 @@
+---
+# ==============================================================================
+# Standalone Herdr Provisioning Playbook
+# Installs Herdr terminal runtime & agent multiplexer
+# ==============================================================================
+- name: Install Herdr Terminal Multiplexer
+  hosts: localhost
+  roles:
+    - herdr

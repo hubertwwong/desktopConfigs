@@ -19,7 +19,7 @@ EXTRA_ARGS=()
 
 for arg in "$@"; do
     case "$arg" in
-        all|mint|mint-server|server|mint-desktop|desktop|mint-vm|vm|deb|min|test|tailscale|crd)
+        all|mint|mint-server|server|mint-desktop|desktop|mint-vm|vm|deb|min|test|tailscale|crd|herdr)
             if [ -z "$TARGET" ]; then
                 TARGET="$arg"
             else
@@ -46,6 +46,8 @@ if [ "$TARGET" = "tailscale" ]; then
     PLAYBOOK="prod/initialSetup/install-tailscale.yaml"
 elif [ "$TARGET" = "crd" ]; then
     PLAYBOOK="prod/initialSetup/install-crd.yaml"
+elif [ "$TARGET" = "herdr" ]; then
+    PLAYBOOK="prod/initialSetup/install-herdr.yaml"
 elif [ "$TARGET" = "mint-server" ] || [ "$TARGET" = "server" ]; then
     PLAYBOOK="prod/initialSetup/site-mint-server.yaml"
 elif [ "$TARGET" = "mint-vm" ] || [ "$TARGET" = "vm" ]; then
@@ -58,7 +60,7 @@ fi
 
 if [ ! -f "$PLAYBOOK" ]; then
     echo "Error: Playbook '$PLAYBOOK' not found."
-    echo "Usage: ./setup.sh [all|mint|mint-server|server|mint-desktop|desktop|mint-vm|vm|deb|min|test|tailscale|crd] [ansible-playbook options...]"
+    echo "Usage: ./setup.sh [all|mint|mint-server|server|mint-desktop|desktop|mint-vm|vm|deb|min|test|tailscale|crd|herdr] [ansible-playbook options...]"
     exit 1
 fi
 

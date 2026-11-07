@@ -1,0 +1,43 @@
+---
+# ==============================================================================
+# Herdr Role - Terminal Runtime & Multiplexer for AI Coding Agents
+# https://herdr.dev | https://github.com/herdrdev/herdr
+# ==============================================================================
+
+- name: Ensure install directory exists
+  ansible.builtin.file:
+    path: "{{ herdr_install_dir | default(ansible_env.HOME + '/.local/bin') }}"
+    state: directory
+    mode: '0755'
+
+- name: Check if herdr binary is already installed
+  ansible.builtin.stat:
+    path: "{{ (herdr_system_wide | default(false)) | ternary('/usr/local/bin/herdr', (herdr_install_dir | default(ansible_env.HOME + '/.local/bin')) + '/herdr') }}"
+  register: herdr_bin_stat
+
+- name: Install Herdr via official installation script
+  ansible.builtin.shell: |
+    curl -fsSL https://herdr.dev/install.sh | sh
+  environment:
+    HERDR_INSTALL_DIR: "{{ (herdr_system_wide | default(false)) | ternary('/usr/local/bin', (herdr_install_dir | default(ansible_env.HOME + '/.local/bin'))) }}"
+  register: herdr_install
+  changed_when: true
+  when: not herdr_bin_stat.stat.exists
+
+- name: Ensure ~/.local/bin is in user PATH in ~/.bashrc
+  ansible.builtin.lineinfile:
+    path: "{{ ansible_env.HOME }}/.bashrc"
+    line: 'export PATH="$HOME/.local/bin:$PATH"'
+    state: present
+    insertafter: EOF
+
+- name: Verify Herdr installation
+  ansible.builtin.command: "{{ (herdr_system_wide | default(false)) | ternary('/usr/local/bin/herdr', (herdr_install_dir | default(ansible_env.HOME + '/.local/bin')) + '/herdr') }} --version"
+  register: herdr_version
+  changed_when: false
+  failed_when: false
+
+- name: Display Herdr installed version
+  ansible.builtin.debug:
+    msg: "Herdr installed successfully: {{ herdr_version.stdout | default('Ready') }}"
+  when: herdr_version.rc == 0

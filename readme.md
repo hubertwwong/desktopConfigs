@@ -91,6 +91,7 @@ cd ~/projects/desktopConfigs
 # 🔧 Targeted Service Installers
 ./setup.sh tailscale     # 🔒 Tailscale mesh VPN & Tailscale SSH
 ./setup.sh crd           # 🖥️ Chrome Remote Desktop (isolated XFCE virtual host)
+./setup.sh herdr         # 🤠 Herdr terminal runtime for AI coding agents
 ```
 
 > [!TIP]
@@ -114,6 +115,7 @@ cd ~/projects/desktopConfigs
 ## 📦 Included Software & Tooling
 
 ### 🛠️ Developer Runtimes & Applications
+- 🤠 **Herdr**: Modern terminal runtime & multiplexer for AI coding agents (see [docs/herdr.md](docs/herdr.md)).
 - 📝 **VS Code**: Native `.deb` via official Microsoft APT repository (no Snap bloat).
 - 🌐 **Mise Polyglot Manager**: Global installations of latest Node.js, Go, Python, `kubectl`, and `helm`.
 - 🐳 **Docker CE & Compose**: Dynamic repository integration with armored keyring verification.
@@ -142,6 +144,7 @@ cd ~/projects/desktopConfigs
 ├── 📚 docs/                        # Detailed architecture & setup documentation
 │   ├── 📑 mint-variants.md         # Linux Mint variants guide (Server, Desktop, VM)
 │   ├── 🖥️ mint-server.md           # 24/7 Linux Mint Server setup guide
+│   ├── 🤠 herdr.md                 # Herdr terminal runtime for AI agents guide
 │   ├── 🌐 chrome-remote-desktop.md # CRD dual-session remote desktop guide
 │   └── 🔒 tailscale.md             # Tailscale VPN & SSH guide
 ├── 📦 prod/

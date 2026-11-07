@@ -1,0 +1,4 @@
+---
+# Default installation path for user-level binary (~/.local/bin)
+herdr_install_dir: "{{ ansible_env.HOME }}/.local/bin"
+herdr_system_wide: false
