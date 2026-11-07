@@ -2,6 +2,7 @@
 # ==============================================================================
 # Server Power & Sleep Management Role (24/7 Server Operations)
 # Permanently disables sleep, suspend, and hibernation at systemd & desktop level
+# while ensuring the physical display is still able to sleep / power down on idle
 # ==============================================================================
 
 # ------------------------------------------------------------------------------
@@ -66,7 +67,34 @@
   when: disable_server_sleep | default(true)
 
 # ------------------------------------------------------------------------------
-# 2. Desktop Environment Power Settings (Cinnamon & GNOME via gsettings)
+# 2. Xorg DPMS Server Configuration (Monitor turns off even at login screen)
+# ------------------------------------------------------------------------------
+- name: Ensure /etc/X11/xorg.conf.d directory exists
+  ansible.builtin.file:
+    path: /etc/X11/xorg.conf.d
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+  become: yes
+
+- name: Configure Xorg DPMS timeouts (minutes) for login screen and X11
+  ansible.builtin.copy:
+    dest: /etc/X11/xorg.conf.d/10-dpms.conf
+    owner: root
+    group: root
+    mode: '0644'
+    content: |
+      Section "ServerFlags"
+          Option "BlankTime" "{{ ((display_sleep_timeout | default(600) | int) / 60) | int }}"
+          Option "StandbyTime" "{{ ((display_sleep_timeout | default(600) | int) / 60) | int }}"
+          Option "SuspendTime" "{{ ((display_sleep_timeout | default(600) | int) / 60) | int }}"
+          Option "OffTime" "{{ ((display_sleep_timeout | default(600) | int) / 60) | int }}"
+      EndSection
+  become: yes
+
+# ------------------------------------------------------------------------------
+# 3. Desktop Environment Power Settings (Cinnamon & GNOME via gsettings)
 # ------------------------------------------------------------------------------
 - name: Check if gsettings is available
   ansible.builtin.command: which gsettings
@@ -74,30 +102,31 @@
   failed_when: false
   changed_when: false
 
-- name: Configure Cinnamon power settings (disable sleep and lid suspend)
+- name: Configure Cinnamon power settings (disable system sleep, enable display sleep)
   ansible.builtin.command: "gsettings set org.cinnamon.settings-daemon.plugins.power {{ item.key }} {{ item.value }}"
   loop:
     - { key: 'sleep-inactive-ac-timeout', value: '0' }
     - { key: 'sleep-inactive-battery-timeout', value: '0' }
     - { key: 'sleep-inactive-ac-type', value: "'nothing'" }
     - { key: 'sleep-inactive-battery-type', value: "'nothing'" }
-    - { key: 'lid-close-ac-action', value: "'nothing'" }
-    - { key: 'lid-close-battery-action', value: "'nothing'" }
+    - { key: 'button-suspend', value: "'nothing'" }
+    - { key: 'lid-close-ac-action', value: "'blank'" }
+    - { key: 'lid-close-battery-action', value: "'blank'" }
     - { key: 'idle-dim-ac', value: 'false' }
     - { key: 'idle-dim-battery', value: 'false' }
-    - { key: 'sleep-display-ac', value: "{{ display_sleep_timeout | default(900) }}" }
-    - { key: 'sleep-display-battery', value: "{{ display_sleep_timeout | default(900) }}" }
+    - { key: 'sleep-display-ac', value: "{{ display_sleep_timeout | default(600) }}" }
+    - { key: 'sleep-display-battery', value: "{{ display_sleep_timeout | default(600) }}" }
   failed_when: false
   changed_when: true
   when: gsettings_check.rc == 0
 
-- name: Configure Cinnamon session idle delay
-  ansible.builtin.command: "gsettings set org.cinnamon.desktop.session idle-delay 0"
+- name: Configure Cinnamon session idle delay (align with display sleep timeout)
+  ansible.builtin.command: "gsettings set org.cinnamon.desktop.session idle-delay {{ display_sleep_timeout | default(600) }}"
   failed_when: false
   changed_when: true
   when: gsettings_check.rc == 0
 
-- name: Configure GNOME power settings (disable sleep and lid suspend)
+- name: Configure GNOME power settings (disable system sleep, enable display sleep)
   ansible.builtin.command: "gsettings set org.gnome.settings-daemon.plugins.power {{ item.key }} {{ item.value }}"
   loop:
     - { key: 'sleep-inactive-ac-timeout', value: '0' }
@@ -107,18 +136,57 @@
     - { key: 'lid-close-ac-action', value: "'nothing'" }
     - { key: 'lid-close-battery-action', value: "'nothing'" }
     - { key: 'idle-dim', value: 'false' }
+    - { key: 'sleep-display-ac', value: "{{ display_sleep_timeout | default(600) }}" }
   failed_when: false
   changed_when: true
   when: gsettings_check.rc == 0
 
-- name: Configure GNOME session idle delay
-  ansible.builtin.command: "gsettings set org.gnome.desktop.session idle-delay 0"
+- name: Configure GNOME session idle delay (align with display sleep timeout)
+  ansible.builtin.command: "gsettings set org.gnome.desktop.session idle-delay {{ display_sleep_timeout | default(600) }}"
   failed_when: false
   changed_when: true
   when: gsettings_check.rc == 0
 
 # ------------------------------------------------------------------------------
-# 3. XFCE Power Manager Settings (via xfconf-query)
+# 4. User Session DPMS Persistence (~/.xprofile and autostart desktop entry)
+# ------------------------------------------------------------------------------
+- name: Ensure ~/.config/autostart directory exists
+  ansible.builtin.file:
+    path: "{{ ansible_env.HOME | default('~') }}/.config/autostart"
+    state: directory
+    mode: '0755'
+
+- name: Deploy user autostart entry for DPMS display sleep
+  ansible.builtin.copy:
+    dest: "{{ ansible_env.HOME | default('~') }}/.config/autostart/dpms.desktop"
+    mode: '0644'
+    content: |
+      [Desktop Entry]
+      Type=Application
+      Name=DPMS Display Sleep
+      Comment=Ensure display turns off after {{ display_sleep_timeout | default(600) }}s of inactivity
+      Exec=xset +dpms dpms {{ display_sleep_timeout | default(600) }} {{ display_sleep_timeout | default(600) }} {{ display_sleep_timeout | default(600) }} s {{ display_sleep_timeout | default(600) }} {{ display_sleep_timeout | default(600) }}
+      Hidden=false
+      NoDisplay=false
+      X-GNOME-Autostart-enabled=true
+
+- name: Ensure ~/.xprofile configures DPMS display sleep
+  ansible.builtin.lineinfile:
+    path: "{{ ansible_env.HOME | default('~') }}/.xprofile"
+    line: "xset +dpms dpms {{ display_sleep_timeout | default(600) }} {{ display_sleep_timeout | default(600) }} {{ display_sleep_timeout | default(600) }} s {{ display_sleep_timeout | default(600) }} {{ display_sleep_timeout | default(600) }}"
+    create: yes
+    mode: '0644'
+
+- name: Apply DPMS display sleep immediately to active X display if running
+  ansible.builtin.command: >
+    xset +dpms dpms {{ display_sleep_timeout | default(600) }} {{ display_sleep_timeout | default(600) }} {{ display_sleep_timeout | default(600) }} s {{ display_sleep_timeout | default(600) }} {{ display_sleep_timeout | default(600) }}
+  environment:
+    DISPLAY: "{{ ansible_env.DISPLAY | default(':0') }}"
+  failed_when: false
+  changed_when: false
+
+# ------------------------------------------------------------------------------
+# 5. XFCE Power Manager Settings (via xfconf-query)
 # ------------------------------------------------------------------------------
 - name: Check if xfconf-query tool is available
   ansible.builtin.command: which xfconf-query
@@ -126,7 +194,7 @@
   failed_when: false
   changed_when: false
 
-- name: Configure XFCE power manager - Disable sleep on AC/battery
+- name: Configure XFCE power manager - Disable system sleep, enable display DPMS sleep
   ansible.builtin.command: >
     xfconf-query -c xfce4-power-manager -p {{ item.prop }} -n -t {{ item.type }} -s {{ item.val }}
   loop:
@@ -135,6 +203,10 @@
     - { prop: '/xfce4-power-manager/lid-action-on-ac', type: 'uint', val: '0' }
     - { prop: '/xfce4-power-manager/lid-action-on-battery', type: 'uint', val: '0' }
     - { prop: '/xfce4-power-manager/power-button-action', type: 'uint', val: '0' }
+    - { prop: '/xfce4-power-manager/dpms-enabled', type: 'bool', val: 'true' }
+    - { prop: '/xfce4-power-manager/dpms-on-ac-sleep', type: 'uint', val: "{{ ((display_sleep_timeout | default(600) | int) / 60) | int }}" }
+    - { prop: '/xfce4-power-manager/dpms-on-ac-off', type: 'uint', val: "{{ ((display_sleep_timeout | default(600) | int) / 60) | int }}" }
+    - { prop: '/xfce4-power-manager/blank-on-ac', type: 'uint', val: "{{ ((display_sleep_timeout | default(600) | int) / 60) | int }}" }
   failed_when: false
   changed_when: true
   when: xfconf_check.rc == 0

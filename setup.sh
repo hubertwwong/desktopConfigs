@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ==============================================================================
-# linuxDesktopConfig - Streamlined Provisioning & Test Runner
+# desktopConfigs - Streamlined Provisioning & Test Runner
 # ==============================================================================
 set -e
 
@@ -19,7 +19,7 @@ EXTRA_ARGS=()
 
 for arg in "$@"; do
     case "$arg" in
-        all|mint|deb|min|test|tailscale|crd)
+        all|mint|mint-server|server|deb|min|test|tailscale|crd)
             if [ -z "$TARGET" ]; then
                 TARGET="$arg"
             else
@@ -46,13 +46,15 @@ if [ "$TARGET" = "tailscale" ]; then
     PLAYBOOK="prod/initialSetup/install-tailscale.yaml"
 elif [ "$TARGET" = "crd" ]; then
     PLAYBOOK="prod/initialSetup/install-crd.yaml"
+elif [ "$TARGET" = "mint-server" ] || [ "$TARGET" = "server" ]; then
+    PLAYBOOK="prod/initialSetup/site-mint-server.yaml"
 else
     PLAYBOOK="prod/initialSetup/site-${TARGET}.yaml"
 fi
 
 if [ ! -f "$PLAYBOOK" ]; then
     echo "Error: Playbook '$PLAYBOOK' not found."
-    echo "Usage: ./setup.sh [all|mint|deb|min|test|tailscale|crd] [ansible-playbook options...]"
+    echo "Usage: ./setup.sh [all|mint|mint-server|server|deb|min|test|tailscale|crd] [ansible-playbook options...]"
     exit 1
 fi
 

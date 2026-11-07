@@ -9,6 +9,8 @@ desktop_environment: "xfce"
 # Linux Mint upstream release mapping (Mint version -> Ubuntu/Debian LTS codename)
 mint_upstream_releases:
   # Linux Mint 22.x (based on Ubuntu 24.04 Noble Numbat)
+  zena: "noble"
+  xia: "noble"
   wilma: "noble"
   # Linux Mint 21.x (based on Ubuntu 22.04 Jammy Jellyfish)
   virginia: "jammy"

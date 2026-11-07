@@ -1,0 +1,63 @@
+---
+# ==============================================================================
+# Linux Mint 24/7 Server Provisioning Playbook
+# Tailored specifically for Linux Mint running as an always-on server
+# Features:
+#   - 24/7 Server Power Management: systemd sleep masked, DPMS display sleep enabled
+#   - Remote Access & Management: SSH server, Chrome Remote Desktop, Tailscale
+#   - Developer & Container Stack: Docker CE, Git, Mise, Python, VS Code, Ghostty, Antigravity
+#   - Essential Server Tools: tmux, htop, curl, ufw, net-tools, iotop
+# ==============================================================================
+- name: Provision Linux Mint 24/7 Server
+  hosts: localhost
+  vars:
+    # Disable OS sleep completely, let physical display sleep after 10 minutes (600s)
+    disable_server_sleep: true
+    display_sleep_timeout: 600
+  pre_tasks:
+    - name: Load Linux Mint distribution variables
+      ansible.builtin.include_vars: "{{ item }}"
+      with_first_found:
+        - files:
+            - "LinuxMint.yml"
+            - "{{ ansible_distribution }}.yml"
+            - "{{ ansible_os_family }}.yml"
+            - "default.yml"
+          paths:
+            - "{{ playbook_dir }}/../vars/distros"
+
+    - name: Ensure server utility and SSH packages are installed
+      ansible.builtin.apt:
+        name:
+          - openssh-server
+          - tmux
+          - ufw
+          - iotop
+          - net-tools
+        state: present
+        update_cache: yes
+      become: yes
+
+    - name: Ensure SSH server is enabled and running
+      ansible.builtin.systemd:
+        name: ssh
+        enabled: yes
+        state: started
+      become: yes
+
+  roles:
+    - initial_packages
+    - power_management
+    - timezone
+    - dot
+    - chrome
+    - chrome_remote_desktop
+    - python
+    - vscode_apt
+    - vscode_file_handles
+    - git
+    - docker_ce
+    - tailscale
+    - mise
+    - ghostty
+    - antigravity

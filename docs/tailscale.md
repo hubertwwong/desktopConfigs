@@ -24,20 +24,20 @@ You can set up Tailscale using any of the following methods:
 Run the included installer script:
 
 ```bash
-cd ~/projects/linuxDesktopConfig
+cd ~/projects/desktopConfigs
 ./scripts/setup-tailscale.sh
 ```
 
 Or run directly on any fresh machine:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/hubertwwong/linuxDesktopConfig/master/scripts/setup-tailscale.sh | bash
+curl -fsSL https://raw.githubusercontent.com/hubertwwong/desktopConfigs/master/scripts/setup-tailscale.sh | bash
 ```
 
 ### Method B: Via Ansible Runner
 
 ```bash
-cd ~/projects/linuxDesktopConfig
+cd ~/projects/desktopConfigs
 ./setup.sh tailscale
 ```
 

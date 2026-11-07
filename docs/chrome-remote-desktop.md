@@ -22,14 +22,14 @@ Chrome Remote Desktop allows secure remote access to your Linux machine via any 
 Run the included installer script:
 
 ```bash
-cd ~/projects/linuxDesktopConfig
+cd ~/projects/desktopConfigs
 ./scripts/setup-chrome-remote-desktop.sh
 ```
 
 Or run directly on any fresh machine:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/hubertwwong/linuxDesktopConfig/master/scripts/setup-chrome-remote-desktop.sh | bash
+curl -fsSL https://raw.githubusercontent.com/hubertwwong/desktopConfigs/master/scripts/setup-chrome-remote-desktop.sh | bash
 ```
 
 The script installs all dependencies, deploys the isolated session wrapper, and prompts you to paste the authorization command from Google.
@@ -37,7 +37,7 @@ The script installs all dependencies, deploys the isolated session wrapper, and 
 ### Method B: Via Ansible Runner
 
 ```bash
-cd ~/projects/linuxDesktopConfig
+cd ~/projects/desktopConfigs
 ./setup.sh crd
 ```
 
