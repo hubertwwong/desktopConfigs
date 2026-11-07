@@ -29,10 +29,20 @@ cd ~/projects/linuxDesktopConfig
 ./setup.sh test
 
 # Provision target environments
-./setup.sh mint    # Linux Mint XFCE
-./setup.sh all     # Auto-detect distribution & desktop
-./setup.sh min     # Minimal / headless (CLI tools only)
-./setup.sh deb     # Debian with XRDP remote desktop & Syncthing
+./setup.sh mint       # Linux Mint XFCE
+./setup.sh all        # Auto-detect distribution & desktop
+./setup.sh min        # Minimal / headless (CLI tools only)
+./setup.sh deb        # Debian with XRDP remote desktop & Syncthing
+
+# Targeted service provisioning
+./setup.sh tailscale  # Tailscale mesh VPN & Tailscale SSH
+./setup.sh crd        # Chrome Remote Desktop (headless XFCE host)
+```
+
+Alternatively, you can run standalone helper scripts directly without Ansible:
+```bash
+./scripts/setup-tailscale.sh              # Quick interactive Tailscale installer
+./scripts/setup-chrome-remote-desktop.sh  # Quick interactive CRD installer
 ```
 
 > [!TIP]
@@ -61,7 +71,7 @@ The system automatically detects your OS distribution and applies matching confi
   - **Ghostty Terminal**: Native `.deb` package auto-matched to upstream distro version with `Gruvbox Dark` styling.
   - **Google Chrome**: Official Google APT package repository.
 - **Networking & Remote Services**:
-  - **Tailscale**: Official Tailscale repository, package installation, and systemd service setup.
+  - **Tailscale**: Official Tailscale repository, package installation, and systemd service setup (see [docs/tailscale.md](docs/tailscale.md)).
   - **Chrome Remote Desktop**: Headless remote desktop host via XFCE with dual-session local/remote isolation (see [docs/chrome-remote-desktop.md](docs/chrome-remote-desktop.md)).
 - **System & Server Operations**:
   - **24/7 Server Power Management**: Permanently masks systemd sleep/suspend/hibernate targets, configures `systemd-logind` to ignore laptop lid closing and power/suspend buttons, and prevents OS sleep while preserving display timeout for energy savings.

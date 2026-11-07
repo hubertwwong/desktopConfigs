@@ -15,7 +15,37 @@ Chrome Remote Desktop allows secure remote access to your Linux machine via any 
 
 ---
 
-## 2. Prerequisites
+## 2. Quick Setup Methods
+
+### Method A: Standalone Quick Script (Fastest)
+
+Run the included installer script:
+
+```bash
+cd ~/projects/linuxDesktopConfig
+./scripts/setup-chrome-remote-desktop.sh
+```
+
+Or run directly on any fresh machine:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/hubertwwong/linuxDesktopConfig/master/scripts/setup-chrome-remote-desktop.sh | bash
+```
+
+The script installs all dependencies, deploys the isolated session wrapper, and prompts you to paste the authorization command from Google.
+
+### Method B: Via Ansible Runner
+
+```bash
+cd ~/projects/linuxDesktopConfig
+./setup.sh crd
+```
+
+This provisions Chrome Remote Desktop using the Ansible role in [`prod/initialSetup/roles/chrome_remote_desktop/`](../prod/initialSetup/roles/chrome_remote_desktop/).
+
+---
+
+## 3. Prerequisites
 
 The following packages are required on the host system:
 
@@ -25,7 +55,7 @@ The following packages are required on the host system:
 
 ---
 
-## 3. The Session Configuration (`~/.chrome-remote-desktop-session`)
+## 4. The Session Configuration (`~/.chrome-remote-desktop-session`)
 
 To prevent virtual remote sessions from hijacking local display and audio channels, the session script unsets inherited Chrome Remote Desktop variables from the user's `systemd --user` environment before launching XFCE.
 
@@ -59,7 +89,7 @@ exec /usr/bin/dbus-run-session -- /usr/bin/startxfce4
 
 ---
 
-## 4. Initial Setup & Authorization (Headless)
+## 5. Initial Setup & Authorization (Headless)
 
 Because Google OAuth authorization requires your Google Account credentials, host linking is done via Google's headless authorization portal:
 
@@ -79,7 +109,7 @@ Because Google OAuth authorization requires your Google Account credentials, hos
 
 ---
 
-## 5. Service Management
+## 6. Service Management
 
 Once authorized, the service is managed automatically by `systemd`:
 
@@ -99,7 +129,7 @@ Host authorization files and persistent tokens are stored in:
 
 ---
 
-## 6. Troubleshooting
+## 7. Troubleshooting
 
 * **Blank/Grey Screen upon connection**:
   Verify `~/.chrome-remote-desktop-session` exists, is marked executable (`chmod +x ~/.chrome-remote-desktop-session`), and that `xfce4` and `dbus-x11` are installed.

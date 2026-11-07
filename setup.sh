@@ -19,7 +19,7 @@ EXTRA_ARGS=()
 
 for arg in "$@"; do
     case "$arg" in
-        all|mint|deb|min|test)
+        all|mint|deb|min|test|tailscale|crd)
             if [ -z "$TARGET" ]; then
                 TARGET="$arg"
             else
@@ -42,10 +42,17 @@ if [ "$TARGET" = "test" ]; then
 fi
 
 # 4. Resolve provisioning playbook
-PLAYBOOK="prod/initialSetup/site-${TARGET}.yaml"
+if [ "$TARGET" = "tailscale" ]; then
+    PLAYBOOK="prod/initialSetup/install-tailscale.yaml"
+elif [ "$TARGET" = "crd" ]; then
+    PLAYBOOK="prod/initialSetup/install-crd.yaml"
+else
+    PLAYBOOK="prod/initialSetup/site-${TARGET}.yaml"
+fi
+
 if [ ! -f "$PLAYBOOK" ]; then
     echo "Error: Playbook '$PLAYBOOK' not found."
-    echo "Usage: ./setup.sh [all|mint|deb|min|test] [ansible-playbook options...]"
+    echo "Usage: ./setup.sh [all|mint|deb|min|test|tailscale|crd] [ansible-playbook options...]"
     exit 1
 fi
 
