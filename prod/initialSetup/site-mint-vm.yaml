@@ -1,0 +1,52 @@
+---
+# ==============================================================================
+# Linux Mint VirtualBox VM Provisioning Playbook
+# Tailored specifically for Linux Mint running inside a VirtualBox VM
+# Features:
+#   - VirtualBox User Account: vboxuser / changeme with passwordless sudo & vboxsf group
+#   - VirtualBox Guest Integration: guest additions utils, x11 auto-resize, shared folders
+#   - VM Power Management: disable OS suspend/hibernate to prevent VM freeze; generous display timeout
+#   - Complete developer & desktop tooling stack
+# ==============================================================================
+- name: Provision Linux Mint VirtualBox VM
+  hosts: localhost
+  vars:
+    # VM credentials: vboxuser / changeme
+    vm_username: "vboxuser"
+    vm_password: "changeme"
+    vm_password_hash: "$6$salt1234$7vYDzW/0BSK6g.QJXnin/odIMK9hfjAdb4JkTDxpk.1htoyOUm8eFCuJUZ4J9d1Z.KGmArwsl5OLBN1nBRZRZ0"
+    vm_passwordless_sudo: true
+
+    # Prevent VM from sleeping/hibernating (causes hypervisor issues)
+    disable_server_sleep: true
+    display_sleep_timeout: 0
+  pre_tasks:
+    - name: Load Linux Mint distribution variables
+      ansible.builtin.include_vars: "{{ item }}"
+      with_first_found:
+        - files:
+            - "LinuxMint.yml"
+            - "{{ ansible_distribution }}.yml"
+            - "{{ ansible_os_family }}.yml"
+            - "default.yml"
+          paths:
+            - "{{ playbook_dir }}/../vars/distros"
+
+  roles:
+    - vbox_guest
+    - initial_packages
+    - power_management
+    - role: xfce_settings
+      when: desktop_environment | default('cinnamon') == 'xfce'
+    - timezone
+    - dot
+    - chrome
+    - python
+    - vscode_apt
+    - vscode_file_handles
+    - git
+    - docker_ce
+    - tailscale
+    - mise
+    - ghostty
+    - antigravity

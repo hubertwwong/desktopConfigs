@@ -1,9 +1,54 @@
-- name: Install packages need to compile the vbox guest additions.
+---
+# ==============================================================================
+# VirtualBox Guest & VM Integration Role
+# Configures VirtualBox guest utilities, vboxuser account, and shared folders
+# ==============================================================================
+
+- name: Ensure vboxsf group exists
+  ansible.builtin.group:
+    name: vboxsf
+    state: present
+  become: yes
+
+- name: Ensure VirtualBox VM user exists with specified credentials
+  ansible.builtin.user:
+    name: "{{ vm_username | default('vboxuser') }}"
+    password: "{{ vm_password_hash | default('$6$salt1234$7vYDzW/0BSK6g.QJXnin/odIMK9hfjAdb4JkTDxpk.1htoyOUm8eFCuJUZ4J9d1Z.KGmArwsl5OLBN1nBRZRZ0') }}"
+    shell: /bin/bash
+    groups:
+      - sudo
+      - vboxsf
+      - adm
+      - cdrom
+      - dialout
+      - plugdev
+    append: yes
+    state: present
+  become: yes
+
+- name: Configure passwordless sudo for VM user
+  ansible.builtin.copy:
+    dest: "/etc/sudoers.d/{{ vm_username | default('vboxuser') }}"
+    content: "{{ vm_username | default('vboxuser') }} ALL=(ALL) NOPASSWD:ALL\n"
+    owner: root
+    group: root
+    mode: '0440'
+    validate: 'visudo -cf %s'
+  become: yes
+  when: vm_passwordless_sudo | default(true)
+
+- name: Install VirtualBox Guest Additions packages
   ansible.builtin.package:
     name:
-      - "linux-headers-{{ ansible_kernel }}"
-      - build-essential
-      - dkms
-      - gcc
+      - virtualbox-guest-utils
+      - virtualbox-guest-x11
     state: present
+  become: yes
+
+- name: Ensure VirtualBox guest service is enabled and started
+  ansible.builtin.systemd:
+    name: virtualbox-guest-utils
+    enabled: yes
+    state: started
+  failed_when: false
   become: yes

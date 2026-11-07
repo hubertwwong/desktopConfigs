@@ -32,11 +32,12 @@ cd ~/projects/desktopConfigs
 ./setup.sh test
 
 # Provision target environments
-./setup.sh mint-server # Linux Mint 24/7 Server (No sleep, display sleep, SSH, Docker, CRD)
-./setup.sh mint        # Linux Mint Desktop (XFCE Edition)
-./setup.sh all         # Auto-detect distribution & desktop
-./setup.sh min         # Minimal / headless (CLI tools only)
-./setup.sh deb         # Debian with XRDP remote desktop & Syncthing
+./setup.sh mint-server   # Linux Mint 24/7 Server (No sleep, display sleep, SSH, Docker, CRD)
+./setup.sh mint-desktop  # Linux Mint Desktop Workstation (Daily driver, normal sleep)
+./setup.sh mint-vm       # Linux Mint VirtualBox VM (vboxuser:changeme, Guest Additions)
+./setup.sh all           # Auto-detect distribution & desktop
+./setup.sh min           # Minimal / headless (CLI tools only)
+./setup.sh deb           # Debian with XRDP remote desktop & Syncthing
 
 # Targeted service provisioning
 ./setup.sh tailscale   # Tailscale mesh VPN & Tailscale SSH
@@ -61,7 +62,8 @@ The system automatically detects your OS distribution and applies matching confi
 | Target | Description | Recommended For |
 | :--- | :--- | :--- |
 | **`mint-server` / `server`** | 24/7 Server (power sleep disabled, display sleep enabled, SSH, Tailscale, Docker, CRD) | Always-on mini-PCs, home servers, and Linux Mint workstations |
-| **`mint`** | Desktop environment provisioning (XFCE / Cinnamon) | Daily driver laptops and desktops |
+| **`mint-desktop` / `desktop` / `mint`** | Desktop Workstation (daily-driver power, full app suite, display sleep) | Daily driver laptops and physical desktop PCs |
+| **`mint-vm` / `vm`** | VirtualBox VM (user `vboxuser:changeme`, guest additions, shared folders) | VirtualBox development VMs & local test instances |
 | **`all`** | Auto-detected multi-distro setup (Mint, Debian, Ubuntu) | General desktop installations |
 | **`min`** | Minimal headless CLI stack (no GUI apps) | Lightweight VPS or compute nodes |
 | **`deb`** | Debian workstation with XRDP and Syncthing | Debian VMs and remote machines |
@@ -96,12 +98,15 @@ The system automatically detects your OS distribution and applies matching confi
 ├── ansible.cfg                  # Ansible configuration (inventory & output formatting)
 ├── hosts                        # Localhost inventory definition
 ├── docs/                        # Detailed architecture & setup documentation
+│   ├── mint-variants.md         # Linux Mint variants guide (Server, Desktop, VM)
 │   ├── mint-server.md           # 24/7 Linux Mint Server setup guide
 │   ├── chrome-remote-desktop.md # CRD dual-session remote desktop guide
 │   └── tailscale.md             # Tailscale VPN & SSH guide
 ├── prod/
 │   ├── initialSetup/
 │   │   ├── site-mint-server.yaml# Linux Mint 24/7 server playbook
+│   │   ├── site-mint-desktop.yaml# Linux Mint desktop workstation playbook
+│   │   ├── site-mint-vm.yaml    # Linux Mint VirtualBox VM playbook
 │   │   ├── site-all.yaml        # Complete auto-detected desktop playbook
 │   │   ├── site-mint.yaml       # Linux Mint XFCE playbook
 │   │   ├── site-deb.yaml        # Debian remote desktop playbook

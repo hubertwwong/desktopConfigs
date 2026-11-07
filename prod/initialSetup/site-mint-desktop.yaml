@@ -1,0 +1,44 @@
+---
+# ==============================================================================
+# Linux Mint Desktop Workstation Playbook
+# Tailored for Linux Mint (Cinnamon / XFCE) daily driver workstation
+# Features:
+#   - Normal desktop power profile (display sleep enabled, normal suspend/sleep allowed)
+#   - Complete developer suite (Docker CE, Git, Mise, Python, VS Code, Ghostty, Antigravity)
+#   - Desktop tools & utilities (Chrome, KeepassXC, media codecs, dotfiles, Tailscale)
+# ==============================================================================
+- name: Provision Linux Mint Desktop Workstation
+  hosts: localhost
+  vars:
+    # Desktop power: allow standard desktop sleep/suspend; display sleeps after 10 min
+    disable_server_sleep: false
+    display_sleep_timeout: 600
+  pre_tasks:
+    - name: Load Linux Mint distribution variables
+      ansible.builtin.include_vars: "{{ item }}"
+      with_first_found:
+        - files:
+            - "LinuxMint.yml"
+            - "{{ ansible_distribution }}.yml"
+            - "{{ ansible_os_family }}.yml"
+            - "default.yml"
+          paths:
+            - "{{ playbook_dir }}/../vars/distros"
+
+  roles:
+    - initial_packages
+    - power_management
+    - role: xfce_settings
+      when: desktop_environment | default('cinnamon') == 'xfce'
+    - timezone
+    - dot
+    - chrome
+    - python
+    - vscode_apt
+    - vscode_file_handles
+    - git
+    - docker_ce
+    - tailscale
+    - mise
+    - ghostty
+    - antigravity

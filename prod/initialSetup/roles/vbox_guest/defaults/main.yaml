@@ -1,0 +1,7 @@
+---
+# Default VM credentials
+vm_username: "vboxuser"
+vm_password: "changeme"
+# SHA-512 crypt hash of 'changeme' (salt: salt1234)
+vm_password_hash: "$6$salt1234$7vYDzW/0BSK6g.QJXnin/odIMK9hfjAdb4JkTDxpk.1htoyOUm8eFCuJUZ4J9d1Z.KGmArwsl5OLBN1nBRZRZ0"
+vm_passwordless_sudo: true
