@@ -71,6 +71,11 @@ verify_links() {
     if [ -f "$GEMINI_DIR/antigravity-cli/statusline.py" ]; then
         ensure_link "$GEMINI_DIR/antigravity-cli/statusline.py" "$CLI_TARGET/statusline.py"
     fi
+    if [ -d "$REPO_DIR/dotfiles/git/hooks" ]; then
+        mkdir -p "$HOME/.config/git"
+        ensure_link "$REPO_DIR/dotfiles/git/hooks" "$HOME/.config/git/hooks"
+        git config --global core.hooksPath "$HOME/.config/git/hooks"
+    fi
 }
 
 merge_cli_settings() {

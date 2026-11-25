@@ -42,6 +42,7 @@
       python = "latest"
       kubectl = "latest"
       helm = "latest"
+      gitleaks = "latest"
     mode: '0644'
 
 - name: Install all configured tools in mise

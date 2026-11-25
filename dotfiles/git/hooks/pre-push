@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+STDIN_DATA=""
+if [ ! -t 0 ]; then
+    STDIN_DATA="$(cat)"
+fi
+
+GIT_DIR="$(git rev-parse --git-dir 2>/dev/null || true)"
+if [ -n "$GIT_DIR" ] && [ -x "$GIT_DIR/hooks/pre-push" ]; then
+    if [ "$(readlink -f "$GIT_DIR/hooks/pre-push")" != "$(readlink -f "$0")" ]; then
+        printf '%s\n' "$STDIN_DATA" | "$GIT_DIR/hooks/pre-push" "$@"
+    fi
+fi
+
+GUARD="$HOME/.gemini/config/hooks/pii_guard.py"
+[ -f "$GUARD" ] || GUARD="$HOME/projects/desktopConfigs/dotfiles/gemini/hooks/pii_guard.py"
+if [ -f "$GUARD" ]; then
+    printf '%s\n' "$STDIN_DATA" | exec python3 "$GUARD" --mode pre-push
+fi

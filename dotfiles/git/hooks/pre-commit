@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+GIT_DIR="$(git rev-parse --git-dir 2>/dev/null || true)"
+if [ -n "$GIT_DIR" ] && [ -x "$GIT_DIR/hooks/pre-commit" ]; then
+    if [ "$(readlink -f "$GIT_DIR/hooks/pre-commit")" != "$(readlink -f "$0")" ]; then
+        "$GIT_DIR/hooks/pre-commit" "$@"
+    fi
+fi
+
+GUARD="$HOME/.gemini/config/hooks/pii_guard.py"
+[ -f "$GUARD" ] || GUARD="$HOME/projects/desktopConfigs/dotfiles/gemini/hooks/pii_guard.py"
+if [ -f "$GUARD" ]; then
+    exec python3 "$GUARD" --mode pre-commit
+fi

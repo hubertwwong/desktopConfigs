@@ -60,6 +60,11 @@ verify_links() {
     if [ -d "$GEMINI_SKILLS_DIR" ]; then
         ensure_link "$GEMINI_SKILLS_DIR" "$AGENT_TARGET/skills"
     fi
+    if [ -d "$REPO_DIR/dotfiles/git/hooks" ]; then
+        mkdir -p "$HOME/.config/git"
+        ensure_link "$REPO_DIR/dotfiles/git/hooks" "$HOME/.config/git/hooks"
+        git config --global core.hooksPath "$HOME/.config/git/hooks"
+    fi
 }
 
 cmd_status() {

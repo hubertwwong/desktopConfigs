@@ -1,0 +1,12 @@
+# Copy untracked personal patterns/allowlists to:
+#   ~/.config/pii-guard/patterns.txt   (lines here HARD-BLOCK commits/pushes)
+#   ~/.config/pii-guard/allowlist.txt  (lines here suppress false positives)
+#
+# Syntax: literal substring per line, or `re:<regex>`. Blank lines and `#` ignored.
+#
+# Example patterns.txt:
+#   re:\b555[- ]?0199\b
+#   1234 Maple Street
+#
+# Example allowlist.txt:
+#   hubertwwong@gmail.com

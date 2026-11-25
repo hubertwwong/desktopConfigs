@@ -30,3 +30,9 @@
     name: credential.helper
     value: "cache --timeout=3153600000"
     scope: global
+
+- name: Configure global git hooks path
+  community.general.git_config:
+    name: core.hooksPath
+    value: "{{ ansible_env.HOME }}/.config/git/hooks"
+    scope: global

@@ -7,5 +7,19 @@
         "timeout": 5
       }
     ]
+  },
+  "pii-push-guard": {
+    "PreToolUse": [
+      {
+        "matcher": "run_command",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 ~/.gemini/config/hooks/pii_guard.py --mode agy",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
   }
 }

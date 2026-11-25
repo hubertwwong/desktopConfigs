@@ -10,6 +10,7 @@ bat = "latest"
 fd = "latest"
 duf = "latest"
 uv = "latest"
+gitleaks = "latest"
 [settings]
 env_file = ".env"
 
