@@ -1,0 +1,33 @@
+# Secrets & Credential Vaults
+*.kdbx
+*.pgp
+*.gpg
+*.key
+*.pem
+
+# Exports & Archives
+*.zip
+*.tar.gz
+*.tgz
+
+# Environment & Local Secrets
+.env
+.env.*
+!.env.example
+
+# Agent Internal Work Products
+ai/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+
+# Ansible
+*.retry
+
+# Operating System
+.DS_Store
+Thumbs.db

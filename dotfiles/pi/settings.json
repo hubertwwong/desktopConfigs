@@ -1,0 +1,9 @@
+{
+  "$schema": "https://pi.dev/schemas/settings.schema.json",
+  "defaultThinkingLevel": "medium",
+  "compaction": {
+    "enabled": true
+  },
+  "enableSkillCommands": true,
+  "quietStartup": false
+}
