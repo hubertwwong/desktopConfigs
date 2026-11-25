@@ -25,7 +25,7 @@ Run any of the one-liners below on a fresh system to clone into `~/projects/desk
 
 ```bash
 # 🚀 One-Liner (Remote):
-curl -fsSL https://raw.githubusercontent.com/hubertwwong/linuxDesktopConfig/master/bootstrap.sh | bash -s -- mint-server
+curl -fsSL https://raw.githubusercontent.com/hubertwwong/desktopConfigs/master/bootstrap.sh | bash -s -- mint-server
 
 # 💻 From Cloned Repo:
 ./setup.sh mint-server
@@ -42,7 +42,7 @@ curl -fsSL https://raw.githubusercontent.com/hubertwwong/linuxDesktopConfig/mast
 
 ```bash
 # 🚀 One-Liner (Remote):
-curl -fsSL https://raw.githubusercontent.com/hubertwwong/linuxDesktopConfig/master/bootstrap.sh | bash -s -- mint-desktop
+curl -fsSL https://raw.githubusercontent.com/hubertwwong/desktopConfigs/master/bootstrap.sh | bash -s -- mint-desktop
 
 # 💻 From Cloned Repo:
 ./setup.sh mint-desktop
@@ -60,7 +60,7 @@ curl -fsSL https://raw.githubusercontent.com/hubertwwong/linuxDesktopConfig/mast
 
 ```bash
 # 🚀 One-Liner (Remote):
-curl -fsSL https://raw.githubusercontent.com/hubertwwong/linuxDesktopConfig/master/bootstrap.sh | bash -s -- mint-vm
+curl -fsSL https://raw.githubusercontent.com/hubertwwong/desktopConfigs/master/bootstrap.sh | bash -s -- mint-vm
 
 # 💻 From Cloned Repo:
 ./setup.sh mint-vm
@@ -124,8 +124,12 @@ cd ~/projects/desktopConfigs
 
 ### 🔒 Networking & Remote Access
 - 🔒 **Tailscale Mesh VPN**: Official Tailscale repository, client packages, and systemd service (see [docs/tailscale.md](docs/tailscale.md)).
+- 🔄 **Syncthing P2P File Sync**: Continuous cross-device synchronization and canonical folder ID mapping (see [docs/syncthing.md](docs/syncthing.md)).
 - 🖥️ **Chrome Remote Desktop**: Headless virtual host via XFCE with dual-session local/remote isolation (see [docs/chrome-remote-desktop.md](docs/chrome-remote-desktop.md)).
 - 🔑 **OpenSSH Server**: Configured, enabled, and started automatically on server profiles.
+
+### 🔐 Secret & Credential Management
+- 🔐 **Proton Pass & KeePassXC Workflow**: Offline, PGP-encrypted Syncthing backups and CLI credential injection (see [docs/proton-pass-backup.md](docs/proton-pass-backup.md)).
 
 ### ⚡ System & Power Management
 - 🔋 **Server Power Lock**: Permanently masks systemd sleep/suspend/hibernate targets; ignores lid switches and sleep buttons.
@@ -146,7 +150,9 @@ cd ~/projects/desktopConfigs
 │   ├── 🖥️ mint-server.md           # 24/7 Linux Mint Server setup guide
 │   ├── 🤠 herdr.md                 # Herdr terminal runtime for AI agents guide
 │   ├── 🌐 chrome-remote-desktop.md # CRD dual-session remote desktop guide
-│   └── 🔒 tailscale.md             # Tailscale VPN & SSH guide
+│   ├── 🔒 tailscale.md             # Tailscale VPN & SSH guide
+│   ├── 🔄 syncthing.md             # Syncthing cluster & folder ID mapping
+│   └── 🔐 proton-pass-backup.md    # Proton Pass & KeePassXC local credential workflow
 ├── 📦 prod/
 │   ├── 🛠️ initialSetup/
 │   │   ├── 🖥️ site-mint-server.yaml  # Linux Mint 24/7 server playbook

@@ -1,0 +1,11 @@
+{
+  "agentMode": "auto",
+  "toolPermission": "proceed-in-sandbox",
+  "enableTerminalSandbox": true,
+  "statusLine": {
+    "type": "command",
+    "command": "~/.gemini/antigravity-cli/statusline.py",
+    "enabled": true,
+    "stack_with_default": true
+  }
+}

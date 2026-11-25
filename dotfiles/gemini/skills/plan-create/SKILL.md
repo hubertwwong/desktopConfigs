@@ -1,81 +1,83 @@
 ---
 name: plan-create
 description: >-
-  Use this skill when asked to create, draft, outline, or architect an implementation plan
-  for a task, feature, or refactor. Supports North Stars, Guardrails/No-Gos, decision logging,
-  and scalable complexity (single minimal plan by default, staged sub-plans for complex work).
+  Use this skill to draft and scaffold a minimal, test-driven implementation plan in ./ai/plan.md
+  (or ./ai/plans/<slug>/ directory board when >10 steps). Enforces North Stars, No-Gos, and concrete verification tests.
 ---
 
 # Plan Create Skill
 
-This skill creates practical, test-driven implementation plans. It scales to the task: minimal by default, expanding to staged sub-plans only when complexity demands it.
-
-## Guiding Principles
-
-1. **Default to Simplicity (KISS)**:
-   - **90% of tasks need only a single `./ai/plan.md`**.
-   - Do NOT create sub-plans or extra files unless the task has multiple independent phases or different agents need to work in parallel.
-2. **North Star & Guardrails (No-Gos)**:
-   - **North Star**: The single defining outcome that represents success.
-   - **No-Gos**: Hard boundaries of what NOT to do (e.g., forbidden dependencies, breaking changes, scope bloat).
-3. **Living Decision Log**:
-   - Record design choices, tradeoffs, and user pivots directly in the plan under `## Decision Log & Changes`.
-4. **Directory Organization & Git Boundaries**:
-   - Organize internal files into appropriate subdirectories under `./ai/` (e.g., `ai/scratch/` for temporary scripts, `ai/data/` for dumps, `ai/plans/` for sub-plans).
-   - The `./ai/` directory contains agent work products and must NEVER be committed to git.
-   - User-facing documentation belongs in `./docs/`.
+Use this skill when initiating a non-trivial or multi-step task. It produces a clear, minimal plan before any production files are modified.
 
 ---
 
-## Plan Formats
+## Mode Selection (Flat vs. Directory Board)
 
-### Format 1: Standard Plan (Default for Most Tasks)
-Single file at `./ai/plan.md`:
+- **Flat Plan (default, `<= 10` steps):** Write `./ai/plan.md` (or `./ai/plans/<slug>.md` when juggling multiple concurrent plans).
+- **Directory Board (`> 10` steps, `10+` modules, multi-session epic, or flat plan `> 12KB`):** Swap to `./ai/plans/<slug>/`:
+  ```text
+  ./ai/plans/<slug>/
+    OVERVIEW.md   # North Star, No-Gos, Acceptance Criteria, Decision Log
+    todo/         # 01-<step>.md, 02-<step>.md ... (1 self-contained card per step)
+    doing/        # active card(s) only
+    done/         # completed cards (never re-read on resume)
+  ```
+  If an existing flat plan grows past 10 steps or ~12KB mid-flight, migrate remaining unchecked steps into `todo/` cards, summarize finished work in `OVERVIEW.md`, and archive/remove the old flat file.
+
+---
+
+## Plan Structure (Standard Flat `./ai/plan.md`)
 
 ```markdown
-# Plan: <Task / Feature Title>
+# Plan: <Concise Title>
 
 ## 1. North Star & Objective
-Clear statement of what this delivers and the primary success metric.
+<1-2 sentences: What is the end state? How do we know it succeeded?>
 
-## 2. Guardrails & No-Gos (Non-Negotiable)
-- 🚫 **No-Go 1**: <e.g., Do not alter existing database schemas>
-- 🚫 **No-Go 2**: <e.g., Do not introduce external dependencies>
-- 🛡️ **Guardrail**: <e.g., All existing unit tests must remain green>
+## 2. Guardrails & No-Gos
+- 🚫 **No-Go 1**: <What must NOT be broken, deleted, or altered>
+- 🚫 **No-Go 2**: <What complexity or dependency is forbidden>
+- 🛡️ **Guardrail**: <Syntax, type, or safety invariants>
 
 ## 3. Implementation Checklist
-- [ ] **Step 1: <Short description>**
-  - Target files: `path/to/file`
-  - Action: <What to change or add>
-  - Verification: `<exact command or test to verify this step>`
-- [ ] **Step 2: <Short description>**
-  - Target files: `path/to/file`
-  - Action: <What to change or add>
-  - Verification: `<exact command or test to verify this step>`
+
+- [ ] **Step 1: <Name>**
+  - Target files: `<path>`
+  - Action: <Minimal change to make>
+  - Verification: `<Exact command or test to verify step>`
+
+- [ ] **Step 2: <Name>**
+  - Target files: `<path>`
+  - Action: <Minimal change to make>
+  - Verification: `<Exact command or test to verify step>`
 
 ## 4. Acceptance Criteria
-- [ ] All step verification tests pass.
-- [ ] No guardrails or no-gos violated.
+- [ ] <End-to-end outcome 1 verified>
+- [ ] <End-to-end outcome 2 verified>
 
 ## 5. Decision Log & Changes
-- **[YYYY-MM-DD]**: Initial plan created.
-<!-- Append future decisions, adjustments, or pivots here -->
+- **<YYYY-MM-DD>**: Initial plan created.
 ```
 
 ---
 
-### Format 2: Staged Multi-Plan (Only for Large / Multi-Agent Initiatives)
-Use only when multiple independent agents or discrete sequential stages are required:
+## Directory Board Structure (`./ai/plans/<slug>/`)
 
-- **Root Plan (`./ai/plan.md`)**:
-  Defines overall North Star, No-Gos, Stage Gates, and a registry table pointing to sub-plans (`./ai/plans/PLAN-XXX_<title>.md`).
-- **Sub-Plans (`./ai/plans/PLAN-XXX_<title>.md`)**:
-  Self-contained work packages with isolated target files, assigned to specific agents (`agent-backend`, `agent-ui`, etc.).
-- **Decision Log**:
-  Maintained in the root plan for global decisions, and in the sub-plan for local architectural choices.
+- **`OVERVIEW.md`**: Same sections `1. North Star & Objective`, `2. Guardrails & No-Gos`, `4. Acceptance Criteria`, and `5. Decision Log & Changes` (cross-card decisions only; no per-step checklist).
+- **Card file (`todo/01-<step>.md`)**:
+  ```markdown
+  # Step 01: <Name>
+  - Target files: `<path>`
+  - Action: <Minimal change to make>
+  - Sub-steps:
+    - [ ] <Sub-step if multi-part>
+  - Verification: `<Exact command or test to verify card>`
+  ```
 
 ---
 
-## Next Steps
-- Audit guardrails and simplicity with `plan-audit`.
-- Execute sequentially with `plan-execute`.
+## Authoring Principles
+
+1. **KISS & Proportionality**: Default to a single flat file (`./ai/plan.md` or `./ai/plans/<slug>.md`). Only swap to a directory board when exceeding 10 steps, 10+ modules, ~12KB, or running a multi-session epic.
+2. **Concrete Verification Commands**: Every checklist step or card must define the exact command or test used to verify it. Never write "test manually" or "verify it works".
+3. **Workspace Boundaries**: Remind that `./ai/` is for internal work products and must never be committed to git.

@@ -1,5 +1,13 @@
 # Global Agent Guidelines
 
-- **AI Work Products:** The `./ai/` directory is for internal agent work products and must NEVER be committed to git.
-- **Subdirectory Organization:** When creating internal files within `./ai/`, organize them into appropriate subdirectories (e.g. `ai/scratch/` for one-off scripts, `ai/data/` for raw outputs/dumps, `ai/plans/` for sub-plans).
-- **Human Deliverables:** Human-readable documentation, summaries, and guides belong in `./docs/`.
+1. **Simple Tasks:** Execute directly and report the result.
+2. **Complex / Multi-Step Tasks:** Create `./ai/plan.md` using `plan-create`, check for relevant runbooks in `docs/runbooks/`, and execute sequentially with `plan-execute`.
+3. **Workspace Organization:** 
+   - `./ai/` is for internal agent work products (scratch scripts, plans, data dumps) and must NEVER be committed to git.
+   - `./docs/` is for human deliverables, guides, and runbooks.
+4. **Git Auto-Push (Private Personal Repos Only):**
+   - For personal projects backed by a **confirmed private** GitHub repository (under `hubertwwong/`, verified via `gh repo view --json isPrivate` or a project-local `AGENTS.md` note), automatically stage, commit, and push completed deliverable changes after verification passes.
+   - **Never** commit `./ai/` or secrets/credentials (`.env`, `*.pem`, `*.key`, etc.), **never** force-push, and **never** auto-push to public or shared/org repos without explicit permission.
+5. **Session Handoff (`/new` Resume):**
+   - Before starting a fresh session with `/new`, use `session-note` when asked to save a handoff note (`./ai/session-note.md`).
+   - When resuming or continuing after `/new`, use `session-note` to read `./ai/session-note.md` first.

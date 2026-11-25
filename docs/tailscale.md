@@ -31,7 +31,7 @@ cd ~/projects/desktopConfigs
 Or run directly on any fresh machine:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/hubertwwong/linuxDesktopConfig/master/scripts/setup-tailscale.sh | bash
+curl -fsSL https://raw.githubusercontent.com/hubertwwong/desktopConfigs/master/scripts/setup-tailscale.sh | bash
 ```
 
 ### Method B: Via Ansible Runner

@@ -22,6 +22,7 @@
     - "{{ ansible_env.HOME }}/.gemini"
     - "{{ ansible_env.HOME }}/.gemini/config"
     - "{{ ansible_env.HOME }}/.gemini/config/plugins"
+    - "{{ ansible_env.HOME }}/.gemini/antigravity-cli"
     - "{{ ansible_env.HOME }}/.local/bin"
 
 - name: Antigravity - Remove legacy town CLI, subagents, and renamed skills if present
@@ -63,7 +64,7 @@
     force: yes
   when: antigravity_symlink_config | default(true)
 
-- name: Antigravity - Symlink AGENTS.md rules and mcp_config.json
+- name: Antigravity - Symlink AGENTS.md rules, mcp_config.json, and hooks.json
   ansible.builtin.file:
     src: "{{ playbook_dir }}/../../dotfiles/gemini/{{ item }}"
     dest: "{{ ansible_env.HOME }}/.gemini/config/{{ item }}"
@@ -72,6 +73,23 @@
   loop:
     - AGENTS.md
     - mcp_config.json
+    - hooks.json
+  when: antigravity_symlink_config | default(true)
+
+- name: Antigravity - Symlink hooks directory to dotfiles/gemini/hooks
+  ansible.builtin.file:
+    src: "{{ playbook_dir }}/../../dotfiles/gemini/hooks"
+    dest: "{{ ansible_env.HOME }}/.gemini/config/hooks"
+    state: link
+    force: yes
+  when: antigravity_symlink_config | default(true)
+
+- name: Antigravity - Symlink CLI statusline script
+  ansible.builtin.file:
+    src: "{{ playbook_dir }}/../../dotfiles/gemini/antigravity-cli/statusline.py"
+    dest: "{{ ansible_env.HOME }}/.gemini/antigravity-cli/statusline.py"
+    state: link
+    force: yes
   when: antigravity_symlink_config | default(true)
 
 - name: Antigravity - Deploy machine-tailored config.json
@@ -88,6 +106,11 @@
     src: "{{ playbook_dir }}/../../scripts/sync-agy.sh"
     dest: "{{ ansible_env.HOME }}/.local/bin/sync-agy"
     mode: '0755'
+
+- name: Antigravity - Apply Antigravity CLI links and settings defaults
+  ansible.builtin.command: "{{ ansible_env.HOME }}/.local/bin/sync-agy link"
+  register: sync_agy_link
+  changed_when: "'Created symlink' in sync_agy_link.stdout or 'Updated symlink' in sync_agy_link.stdout or 'Updated Antigravity CLI settings' in sync_agy_link.stdout"
 
 - name: Antigravity - Deploy update-antigravity-ide updater
   ansible.builtin.copy:

@@ -29,7 +29,7 @@ cd ~/projects/desktopConfigs
 Or run directly on any fresh machine:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/hubertwwong/linuxDesktopConfig/master/scripts/setup-chrome-remote-desktop.sh | bash
+curl -fsSL https://raw.githubusercontent.com/hubertwwong/desktopConfigs/master/scripts/setup-chrome-remote-desktop.sh | bash
 ```
 
 The script installs all dependencies, deploys the isolated session wrapper, and prompts you to paste the authorization command from Google.

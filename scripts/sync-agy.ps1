@@ -62,6 +62,12 @@ function Verify-Links {
     Ensure-Link -Source (Join-Path $GeminiDotfiles "skills") -Target (Join-Path $GlobalConfig "skills") -IsDirectory $true
     Ensure-Link -Source (Join-Path $GeminiDotfiles "AGENTS.md") -Target (Join-Path $GlobalConfig "AGENTS.md") -IsDirectory $false
     Ensure-Link -Source (Join-Path $GeminiDotfiles "mcp_config.json") -Target (Join-Path $GlobalConfig "mcp_config.json") -IsDirectory $false
+    if (Test-Path (Join-Path $GeminiDotfiles "hooks.json")) {
+        Ensure-Link -Source (Join-Path $GeminiDotfiles "hooks.json") -Target (Join-Path $GlobalConfig "hooks.json") -IsDirectory $false
+    }
+    if (Test-Path (Join-Path $GeminiDotfiles "hooks")) {
+        Ensure-Link -Source (Join-Path $GeminiDotfiles "hooks") -Target (Join-Path $GlobalConfig "hooks") -IsDirectory $true
+    }
 }
 
 switch ($Action) {

@@ -1,41 +1,52 @@
 ---
 name: plan-execute
 description: >-
-  Use this skill to execute an approved plan (root plan or specific sub-plan), enforcing
-  North Star alignment, respecting Guardrails/No-Gos, recording decision changes, and handling multi-agent coordination.
+  Use this skill to execute an approved implementation plan in ./ai/plan.md, ./ai/plans/<slug>.md,
+  or ./ai/plans/<slug>/. Enforces sequential step execution, immediate test verification, and recording mid-course decisions.
 ---
 
 # Plan Execute Skill
 
-This skill handles the sequential, test-verified execution of an approved plan.
+Use this skill to systematically execute an approved plan (`./ai/plan.md`, `./ai/plans/<slug>.md`, or `./ai/plans/<slug>/`).
 
-## Execution Protocol
+---
 
-1. **Target Identification**:
-   - For single-file plans: Load `./ai/plan.md`.
-   - For sub-plans: Load the assigned `./ai/plans/PLAN-XXX_<title>.md` and edit only its target files.
+## Mode Handling
 
-2. **Pre-Step Guardrail Verification**:
-   - Before writing or editing any code, verify the change does NOT violate any stated **No-Gos**.
-   - If a step cannot be completed without violating a No-Go, **STOP immediately** and alert the user.
+- **Flat Plan (`./ai/plan.md` or `./ai/plans/<slug>.md`):** Execute checklist steps sequentially. If the file grows past 10 steps or ~12KB mid-flight, promote remaining unchecked steps into a directory board at `./ai/plans/<slug>/` per `plan-create`.
+- **Directory Board (`./ai/plans/<slug>/`):**
+  1. Read `OVERVIEW.md` and list `doing/` and `todo/` — **never read `done/`**.
+  2. Resume any card already in `doing/` first; otherwise `mv` the next `todo/` card into `doing/` and read only that card.
+  3. Update `- [x]` sub-steps inside the card if pausing mid-card; record cross-card changes in `OVERVIEW.md`.
+  4. Only after verification passes, `mv` the card from `doing/` to `done/`.
 
-3. **Step Implementation Loop**:
-   - **Implement**: Make only the minimal code changes needed for the current step.
-   - **Verify**: Immediately run the step's designated verification test command.
-   - **Check Off**: Mark completed (`- [x]`) in the plan file only when the test passes.
-   - **Diagnose**: If a test fails, troubleshoot and fix within the step. Never skip ahead.
+---
 
-4. **Recording Mid-Course Decisions & Changes**:
-   - If an unexpected technical tradeoff, API pivot, or scope change occurs during execution, **record it immediately** in the plan under `## Decision Log & Changes`:
+## Execution Loop
+
+For each step or card:
+
+1. **Pre-Check Guardrails**:
+   - Ensure the upcoming action does not violate any **No-Gos**.
+   - If a step cannot be completed without violating a No-Go, stop and notify the user.
+
+2. **Minimal Implementation**:
+   - Make only the targeted changes required for the current step/card. Do not skip ahead or bundle unrelated refactors.
+
+3. **Immediate Test Verification**:
+   - Run the specified verification command.
+   - If the verification fails, diagnose and fix within the step.
+
+4. **Check Off / Advance State**:
+   - Flat plan: mark `- [x]` only after verification passes.
+   - Directory board: `mv` the card from `doing/` to `done/` only after verification passes.
+
+5. **Log Pivots in Decision Log**:
+   - If a technical choice, dependency, or step changes during execution, log it immediately under `## 5. Decision Log & Changes` (in the flat plan or `OVERVIEW.md`):
      ```markdown
-     - **[YYYY-MM-DD]**: <What was decided, why, and how the checklist was adjusted>
+     - **YYYY-MM-DD**: <What changed, why, and impact on remaining work>
      ```
 
-5. **Git & Work Product Boundaries**:
-   - The `./ai/` directory contains agent work products and must NEVER be committed to git.
-   - When creating temporary scripts or exploratory code, save them in appropriate subdirectories (`./ai/scratch/`, `./ai/data/`).
-   - Keep git commits strictly focused on production code, tests, and human docs (`docs/`).
-
-6. **Completion & Acceptance**:
-   - Run the full acceptance tests.
-   - If working on a sub-plan, update its status to `DONE` and mark it in the parent `./ai/plan.md` registry.
+6. **Workspace Discipline**:
+   - Scratch scripts or exploratory snippets go to `./ai/scratch/` and are never committed to git.
+   - Deliverables and guides go to `docs/`.
