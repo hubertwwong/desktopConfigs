@@ -8,6 +8,15 @@
       }
     ]
   },
+  "context-guard": {
+    "PreInvocation": [
+      {
+        "type": "command",
+        "command": "python3 ~/.gemini/config/hooks/context_guard.py",
+        "timeout": 5
+      }
+    ]
+  },
   "assistant-stop-breadcrumb": {
     "Stop": [
       {
