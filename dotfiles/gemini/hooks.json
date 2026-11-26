@@ -17,6 +17,15 @@
       }
     ]
   },
+  "code-guard-stop": {
+    "Stop": [
+      {
+        "type": "command",
+        "command": "python3 ~/.gemini/config/hooks/code_guard.py --mode stop",
+        "timeout": 5
+      }
+    ]
+  },
   "pii-push-guard": {
     "PreToolUse": [
       {

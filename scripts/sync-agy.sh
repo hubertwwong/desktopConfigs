@@ -182,6 +182,11 @@ cmd_push() {
     echo -e "${BOLD}${CYAN}Pushing Antigravity changes to remote...${RESET}"
     verify_links
 
+    local linter="$HOME/projects/agy-lab/scripts/lint_skills.py"
+    if [ -f "$linter" ] && command -v python3 >/dev/null 2>&1; then
+        python3 "$linter" "$GEMINI_DIR/skills" || return 1
+    fi
+
     git -C "$REPO_DIR" add "dotfiles/gemini"
     if git -C "$REPO_DIR" diff --cached --quiet "dotfiles/gemini"; then
         echo -e "${YELLOW}No changes in dotfiles/gemini to commit.${RESET}"
@@ -199,6 +204,44 @@ cmd_push() {
     fi
 }
 
+cmd_tag() {
+    local tag_name="${1:-agy-v$(date +%Y.%m.%d-%H%M)}"
+    git -C "$REPO_DIR" tag -a "$tag_name" -m "AGY config snapshot $tag_name"
+    echo -e "${GREEN}✓ Created tag: $tag_name${RESET}"
+    echo "Run 'git -C $REPO_DIR push origin $tag_name' to publish tag."
+}
+
+cmd_versions() {
+    echo -e "${BOLD}${CYAN}=== AGY Tags & Recent History ===${RESET}"
+    git -C "$REPO_DIR" tag -l 'agy-*' --sort=-creatordate | head -n 10
+    echo -e "\n${BOLD}Recent dotfiles/gemini commits:${RESET}"
+    git -C "$REPO_DIR" log -n 8 --oneline -- "dotfiles/gemini"
+}
+
+cmd_rollback() {
+    local target="${1:-}"
+    if [ -n "$(git -C "$REPO_DIR" status --porcelain "dotfiles/gemini")" ]; then
+        echo -e "${RED}Error: Uncommitted changes in dotfiles/gemini. Commit or stash first.${RESET}"
+        return 1
+    fi
+    if [ -z "$target" ]; then
+        target="$(git -C "$REPO_DIR" log -n 2 --format=%H -- "dotfiles/gemini" | tail -n 1)"
+    fi
+    if [ -z "$target" ]; then
+        echo -e "${RED}Error: Could not resolve rollback target.${RESET}"
+        return 1
+    fi
+    git -C "$REPO_DIR" checkout "$target" -- "dotfiles/gemini"
+    if git -C "$REPO_DIR" diff --cached --quiet "dotfiles/gemini"; then
+        echo -e "${YELLOW}dotfiles/gemini already matches $target.${RESET}"
+        return 0
+    fi
+    git -C "$REPO_DIR" commit -m "chore(agy): rollback dotfiles/gemini to $target"
+    verify_links
+    merge_cli_settings
+    echo -e "${GREEN}✓ Rolled back dotfiles/gemini to $target (committed non-destructively).${RESET}"
+}
+
 # CLI routing
 ACTION="${1:-pull}"
 shift || true
@@ -213,19 +256,31 @@ case "$ACTION" in
     status|check)
         cmd_status
         ;;
+    tag)
+        cmd_tag "$@"
+        ;;
+    versions|history)
+        cmd_versions
+        ;;
+    rollback)
+        cmd_rollback "$@"
+        ;;
     link|relink)
         verify_links
         merge_cli_settings
         echo -e "${GREEN}✓ All Antigravity configuration symlinks and CLI defaults verified.${RESET}"
         ;;
     -h|--help|help)
-        echo "Usage: sync-agy [pull|push [msg]|status|link]"
+        echo "Usage: sync-agy [pull|push [msg]|status|link|tag [name]|versions|rollback [ref]]"
         echo ""
         echo "Commands:"
-        echo "  pull          Pull latest skills and rules from git (default)"
-        echo "  push [msg]    Commit and push local skill/rule updates to git"
-        echo "  status        Check git sync state and symlink integrity"
-        echo "  link          Ensure ~/.gemini/config symlinks point to repository"
+        echo "  pull            Pull latest skills and rules from git (default)"
+        echo "  push [msg]      Lint, commit, and push local skill/rule updates to git"
+        echo "  status          Check git sync state and symlink integrity"
+        echo "  link            Ensure ~/.gemini/config symlinks point to repository"
+        echo "  tag [name]      Create an annotated agy-v* snapshot tag"
+        echo "  versions        List agy-* tags and recent dotfiles/gemini commits"
+        echo "  rollback [ref]  Restore dotfiles/gemini to tag/commit cleanly"
         ;;
     *)
         echo -e "${RED}Unknown command: $ACTION${RESET}"

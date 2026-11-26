@@ -1,65 +1,31 @@
 ---
 name: code-audit
 description: >-
-  Use this skill to audit, review, critique, or inspect written code, git diffs, or PRs.
-  Checks for file/function bloat, over-mocked tests, fragile bash usage, edge case gaps, and over-engineering.
+  Use this skill to audit, review, or critique code, git diffs, or PRs.
+  Evaluates modularity, shallow wrappers, KISS, and Core 3 tests separately
+  from Spec fit.
 ---
 
 # Code Audit Skill
 
-This skill performs a fast, pragmatic code audit focused on real-world maintainability, avoiding over-engineering while enforcing quality standards.
+Performs a two-axis, risk-tiered review focused on structural maintainability and spec fit.
 
----
+## Axis 1: Design & Quality Review
+1. **Modularity & Shallow Wrappers**: Check separation of concerns (`I/O`, domain logic, `CLI`) and flag shallow pass-through wrappers whose interface rivals their body.
+2. **Testing Pragmatism (Core 3)**: Verify observable behavior at public seams across happy path, boundaries, and failure modes with independent expected values (flag mock overkill).
+3. **KISS & Resource Safety**: Flag speculative abstractions, implicit failures, unclosed handles (`with`/`defer`), and fragile Bash parsing.
+4. **Risk-Tiered Scrutiny**: Focus deepest review on hooks, auth, state/schema changes, and public interfaces; run the project's test suite before issuing `CLEAN`.
 
-## The 5-Point Smell Test
-
-Audit code against these 5 checks:
-
-### 1. Language & Tooling Audit (Bash Misuse)
-- Is bash being used for tasks requiring data parsing (JSON/YAML), string manipulation, or complex loops?
-- *Flag*: Shell scripts > 15 lines or scripts using `sed`/`awk`/regex pipes that should be clean Python or Go scripts.
-
-### 2. Bloat & File Sizing Check
-- Are any files exceeding **250–300 lines**?
-- Does a single file violate Single Responsibility (e.g. mixing I/O, business rules, and UI/CLI)?
-- Are functions exceeding **30 lines** or deeply nested (>3 levels of indentation)?
-
-### 3. Testing Pragmatism ("The Core 3")
-- Are tests testing **observable behavior**, or are they testing internal implementation details?
-- Does test coverage verify:
-  1. The **happy path**?
-  2. The **obvious boundary** (empty collections, zero, null)?
-  3. The **expected failure** mode?
-- *Flag*: Mock overkill (excessive mocking of internal classes/stdlib instead of testing actual input/output).
-
-### 4. KISS & Over-Engineering
-- Are there unnecessary abstraction layers (factories, unused interfaces, speculative generic types)?
-- Could this module be simplified into fewer lines without losing clarity?
-
-### 5. Error Handling & Resource Safety
-- Are exceptions silently caught or ignored?
-- Are resources (file descriptors, sockets, database handles) properly cleaned up with context managers (`with` / `defer`)?
-
----
+## Axis 2: Spec & Scope Fit *(when an active plan or spec exists)*
+- Confirm every requirement from `./ai/plan.md` or the user request is met without unrequested scope creep.
 
 ## Output Audit Report
-
-Deliver audits using this structured markdown format:
-
+Report **Standards** and (when a spec exists) **Spec** separately without merging verdicts:
 ```markdown
 # Code Audit Summary
-
-## 1. Verdict
-- `CLEAN`: Ready to merge/proceed.
-- `APPROVED WITH SUGGESTIONS`: Small improvements recommended; safe to proceed.
-- `CHANGES REQUESTED`: Blocker bugs, file bloat, fragile bash, or broken tests.
-
-## 2. Findings & Smell Test
-- 🗂️ **File Sizing & Structure**: <Assessment of file/function lengths>
-- ⚙️ **Language & Tooling**: <Check for proper use of Python/Go vs Bash>
-- 🧪 **Testing Pragmatism**: <Assessment of Core 3 coverage and mock cleanliness>
-- 🛡️ **Reliability & Errors**: <Assessment of error handling and resource safety>
-
-## 3. Concrete Recommendations & Diffs
-<Exact line-by-line or diff suggestions to simplify and fix issues>
+- **Standards Verdict**: `CLEAN` | `APPROVED WITH SUGGESTIONS` | `CHANGES REQUESTED`
+- **Spec Verdict** *(if plan/spec exists)*: `COMPLETE` | `GAPS FOUND`
+## Standards Findings (Modularity, Core 3, KISS, Safety)
+## Spec Findings *(if applicable)*
+## Concrete Recommendations & Diffs
 ```

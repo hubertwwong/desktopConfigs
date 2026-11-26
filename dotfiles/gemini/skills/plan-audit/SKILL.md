@@ -1,41 +1,31 @@
 ---
 name: plan-audit
 description: >-
-  Use this skill to audit, review, and stress-test an existing implementation plan in ./ai/plan.md,
-  ./ai/plans/<slug>.md, or ./ai/plans/<slug>/. Checks for over-engineering, missing test commands, No-Go adherence, and edge cases.
+  Use this skill to audit and stress-test an implementation plan in ./ai/plan.md,
+  ./ai/plans/<slug>.md, or ./ai/plans/<slug>/ before execution. Checks strategy
+  alignment, seams, proportionality, and verification rigor.
 ---
 
 # Plan Audit Skill
 
-Use this skill after creating or modifying a plan (`./ai/plan.md`, `./ai/plans/<slug>.md`, or `./ai/plans/<slug>/`) to catch architectural flaws, scope creep, and testing gaps before execution starts.
-
----
+Reviews a drafted plan to catch silent assumptions, weak seams, scope creep, and testing gaps before implementation begins.
 
 ## Audit Checklist
 
-1. **Complexity & Proportionality**:
-   - Is the plan over-engineered? Could it be solved with fewer steps or less abstraction?
-   - Does it introduce premature abstractions or speculative features?
-   - **Size check**: If a flat plan exceeds 10 steps or ~12KB, recommend swapping to a directory board (`./ai/plans/<slug>/{OVERVIEW.md, todo/, doing/, done/}`).
-
-2. **Guardrails & No-Gos**:
-   - Are the No-Gos realistic, clear, and enforceable?
-   - Do any planned checklist steps or cards violate the stated No-Gos?
-
-3. **Verification Rigor**:
-   - Does every single checklist item or card have a concrete, executable verification command?
-   - Are edge cases (empty inputs, missing files, network errors) accounted for?
-
-4. **Clarity of Acceptance**:
-   - Can the Acceptance Criteria be tested unambiguously?
-
----
+1. **Strategy & Open Decisions**:
+   - Are design choices settled with the user rather than silently assumed?
+   - Does the plan solve the stated North Star directly without speculative abstractions?
+2. **Seams & Vertical Slicing**:
+   - Do steps land at clean public seams as verifiable **tracer bullets** (or **expand–contract** for wide refactors)?
+   - Is each step small enough to verify independently?
+3. **Proportionality & Mode Fit**:
+   - Flat plan stays `<= 10` steps and `<= 12KB`; larger epics use `./ai/plans/<slug>/{OVERVIEW.md,todo/,doing/,done/}`.
+4. **Guardrails & Verification Rigor**:
+   - Every checklist step and Acceptance Criterion ends on a concrete, executable verification command covering happy path, boundaries, and failure modes.
+   - No step conflicts with the stated No-Gos or commits `./ai/`.
 
 ## Output Report Format
-
-Deliver a concise audit report:
-
 - **Verdict**: `APPROVED` | `APPROVED WITH MINOR EDITS` | `REVISION NEEDED`
-- **Assessment**: 1-2 sentences on proportionality and fit.
-- **Identified Gaps / Risks**: Specific steps or missing verification commands (if any).
-- **Recommended Adjustments**: Concrete edits to update the plan.
+- **Assessment**: 1–2 sentences on strategic fit and proportionality.
+- **Identified Gaps / Risks**: Specific unsettled decisions, weak seams, or missing checks.
+- **Recommended Adjustments**: Concrete edits to update the plan before execution.
